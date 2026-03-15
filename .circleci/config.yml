@@ -48,7 +48,7 @@ jobs:
             echo "Current Directory"
             pwd
             TAG=0.1.${CIRCLE_BUILD_NUM}
-            docker build -f Docker/Dockerfile -t $IMAGE_NAME:$TAG .
+            docker build -f go-db-application/Docker/Dockerfile -t $IMAGE_NAME:$TAG .
       - run:
           name: Security scan
           command: |
