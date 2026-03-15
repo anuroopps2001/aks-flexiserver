@@ -31,7 +31,7 @@ jobs:
       - persist_to_workspace:
           root: .
           paths:
-            - go-application/coverage.out
+            - go-db-application/go-application/coverage.out
 
 # STAGE 2: Build, Scan with Trivy, and Push to DockerHub
   build-push-scan:
