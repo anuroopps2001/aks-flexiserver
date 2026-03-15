@@ -87,7 +87,7 @@ jobs:
             # Commit and Push with [skip ci] to avoid infinite loops
             git add go-app-deployment.yaml
             git commit -m "chore: update image to ${TAG} [skip ci]"
-            git push origin main
+            git push origin HEAD:feature/go-app-pipeline
 
 workflows:
   version: 2
