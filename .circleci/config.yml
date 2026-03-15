@@ -10,7 +10,7 @@ jobs:
           name: Install Kubelogin and Deploy
           command: |
             # Install kubelogin
-            sudo az aks install-cli
+            az aks install-cli
 
             # 2. Login into azure 
             az login --service-principal -u $AZURE_SP -p $AZURE_SP_PASSWORD --tenant $AZURE_TENANT
