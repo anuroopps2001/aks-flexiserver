@@ -38,6 +38,8 @@ jobs:
     machine:
       image: ubuntu-2204:current  # This is the "What OS"
     resource_class: medium          # This is the "How much Power" (medium is standard)
+    environment:
+      IMAGE_NAME: anuroop21/go-db-application
     steps:
       - checkout
       - run:
