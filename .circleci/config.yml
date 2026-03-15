@@ -7,18 +7,24 @@ jobs:
     steps:
       - checkout
       - run:
-          name: Deploy Demo to South India
+          name: Install Kubelogin and Deploy
           command: |
-            # login into azure 
+            # Install kubelogin
+            sudo az aks install-cli
+
+            # 2. Login into azure 
             az login --service-principal -u $AZURE_SP -p $AZURE_SP_PASSWORD --tenant $AZURE_TENANT
 
-            # Get AKS credentials
+            # 3. Get AKS credentials
             az aks get-credentials --resource-group $RESOURCE_GROUP --name $AKS_CLUSTER_NAME
+            
+            # 4. CONVERT the config (The "Major" Step)
+            # This tells kubectl: "Don't ask for a device code, use the Azure CLI token!"
 
-            # 3. Apply the simple demo
+            # 5. Apply the simple demo
             kubectl apply -f demo-deployment/hello-aks.yaml
 
-            # 4. Wait for the IP (Verification)
+            # 6. Wait for the IP (Verification)
             echo "Waiting for loadbalancer IP"
             sleep 10
             kubectl get svc hello-aks
@@ -27,4 +33,3 @@ workflows:
   demo-pipeline:
     jobs:
       - test-and-deploy-nginx-demo
-      
