@@ -6,11 +6,90 @@ executors:
       - image: golang:1.24.11-alpine3.23
     environment:
       GOCACHE: /tmp/go-cache
+      GOMODCACHE: /tmp/go-mod
 
 jobs:
+# JOB 1: Test and lint
   test:
     executor: go-toolchain
     steps:
       - checkout
-      - run: |
-          cd go-application && go test ./...
+      # Restore dependencies to save time
+      - restore_cache:
+          keys:
+            - go-mod-{{ checksum "go-application/go.mod"}}
+      - run: 
+          name: Run Unit tests
+          command: |
+            cd go-application && go test ./... -coverprofile=coverage.out
+      - save_cache:
+          paths:
+            - "/tmp/go-mod"
+          key: go-mod-{{ checksum "go-application/go.mod"}}
+      # Save the coverage file for Sonar (optional) or artifacts
+      - persist_to_workspace:
+          root: .
+          paths:
+            - go-application/coverage.out
+
+# STAGE 2: Build, Scan with Trivy, and Push to DockerHub
+  build-and-push:
+    machine:
+      image: ubuntu-2204:2023.07.2
+    steps:
+      - checkout
+      - run:
+          name: Build Docker image
+          command: |
+            TAG=0.1.${CIRCLE_BUILD_NUM}
+            docker build -f Docker/Dockerfile -t $IMAGE_NAME:$TAG ./go-application
+      - run:
+          name: Security scan
+          command: |
+            TAG=0.1.${CIRCLE_BUILD_NUM}
+            docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
+              aquasec/trivy:latest image --severity CRITICAL $IMAGE_NAME:$TAG
+
+      - run:
+          name: Push to DockerHub
+          command: |
+            TAG=0.1.${CIRCLE_BUILD_NUM}
+            echo "DOCKER_PASS" | docker login -u "$DOCKERHUB_USER" --password-stdin
+            docker push $IMAGE_NAME:$TAG
+            docker tag $IMAGE_NAME:$TAG $IMAGE_NAME:latest
+            docker push $IMAGE_NAME:latest  # second push
+  
+  update-manifests:
+    docker:
+      - image: cimg/base:stable
+    steps:
+      - checkout
+      - run:
+          name: Update Deployment yaml in Git
+          command: |
+            # set identity
+            git config --global user.email "circleci-bot@example.com"
+            git config --global user.name "CircleCI Bot"
+            
+            cd k8s/go-db-app
+            
+            # Use sed to update the image tag
+            TAG=0.1.${CIRCLE_BUILD_NUM}
+            sed -i "s|image: anuroop21/go-db-application:.*|image: anuroop21/go-db-application:${TAG}|g" go-app-deployment.yaml
+
+            # Commit and Push with [skip ci] to avoid infinite loops
+            git add go-app-deployment.yaml
+            git commit -m "chore: update image to ${TAG} [skip ci]"
+            git push origin main
+
+workflows:
+  version: 2
+  go-app-pipeline:
+    jobs:
+      - test-and-lint
+      - build-push-scan:
+          requires:
+            - test-and-lint
+      - update-manifests:
+         requires:
+           - build-push-scan

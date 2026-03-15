@@ -1,0 +1,27 @@
+# Go build artifacts
+bin/
+*.exe
+*.exe~
+*.test
+*.out
+
+# Go workspace
+go.work
+go.work.sum
+
+# Vendor (if you’re not vendoring)
+vendor/
+
+# IDE
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+
+# Env files
+.env
+
+# Github token files
+github-token.token
+
