@@ -77,7 +77,7 @@ jobs:
             git config --global user.email "circleci-bot@example.com"
             git config --global user.name "CircleCI Bot"
             
-            cd k8s/go-db-app
+            cd go-db-application/k8s/go-db-app
             
             # Use sed to update the image tag
             TAG=0.1.${CIRCLE_BUILD_NUM}
