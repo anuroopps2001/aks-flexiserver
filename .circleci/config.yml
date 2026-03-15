@@ -17,15 +17,16 @@ jobs:
       # Restore dependencies to save time
       - restore_cache:
           keys:
-            - go-mod-{{ checksum "go-application/go.mod"}}
+            - go-mod-{{ checksum "go-db-application/go-application/go.mod"}}
       - run: 
           name: Run Unit tests
           command: |
-            cd go-application && go test ./... -coverprofile=coverage.out
+            cd go-db-application/go-application
+            go test ./... -coverprofile=coverage.out
       - save_cache:
           paths:
             - "/tmp/go-mod"
-          key: go-mod-{{ checksum "go-application/go.mod"}}
+          key: go-mod-{{ checksum "go-db-application/go-application/go.mod"}}
       # Save the coverage file for Sonar (optional) or artifacts
       - persist_to_workspace:
           root: .
@@ -42,7 +43,7 @@ jobs:
           name: Build Docker image
           command: |
             TAG=0.1.${CIRCLE_BUILD_NUM}
-            docker build -f Docker/Dockerfile -t $IMAGE_NAME:$TAG ./go-application
+            docker build -f Docker/Dockerfile -t $IMAGE_NAME:$TAG ./go-db-application/go-application
       - run:
           name: Security scan
           command: |
