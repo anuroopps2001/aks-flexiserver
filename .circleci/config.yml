@@ -34,7 +34,7 @@ jobs:
             - go-application/coverage.out
 
 # STAGE 2: Build, Scan with Trivy, and Push to DockerHub
-  build-and-push:
+  build-push-scan:
     machine:
       image: ubuntu-2204:2023.07.2
     steps:
