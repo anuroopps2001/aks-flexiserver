@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-db-service
+  namespace: default
+  labels:
+    app: postgres
+spec:
+  selector:
+    app: postgres
+  type: ClusterIP
+  ports:
+  - protocol: TCP
+    port: 5432 # Port the service exposes
+    targetPort: 5432 # Port on the pod the traffic is forwarded to

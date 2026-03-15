@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: Config
+clusters:
+- name: minikube
+  cluster:
+    server: ${SERVER}
+    certificate-authority-data: ${CA}
+
+users: 
+- name: jenkins
+  user:
+    token: $(cat /tmp/jenkins-token.txt)
+
+contexts:
+- name: jenkins-context
+  context:
+    cluster: minikube
+    user: jenkins
+    namespace: default
+
+current-context: jenkins-context

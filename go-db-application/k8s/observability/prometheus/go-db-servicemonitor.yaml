@@ -1,0 +1,18 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: go-db-app
+  namespace: monitoring
+  labels:
+    release: monitoring
+spec:
+  selector:
+    matchLabels:
+      app: go-db
+  namespaceSelector: 
+    matchNames: 
+      - default
+  endpoints:
+    - port: http # port name in go-db-app service yaml should match
+      path: /metrics
+      interval: 15s

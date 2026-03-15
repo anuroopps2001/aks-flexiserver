@@ -1,0 +1,43 @@
+# version: '3'
+services:
+  postgres-db:
+    image: postgres:17-alpine
+    environment:
+    # POSTGRES_DB environment variable can be used to define a different name for the default
+    # database that is created when the image is first started
+      - POSTGRES_DB=mydb
+
+    # POSTGRES_USER environment variable is used in conjunction with POSTGRES_PASSWORD to set a user and its password. 
+    # This variable will create the specified user with superuser power and a database with the same name. 
+    # If it is not specified, then the default user of postgres will be used.
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=mysecretpassword
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    ports:
+      - 5432:5432
+
+  go-db-app:
+    build:
+      context: ..
+      dockerfile: Docker/Dockerfile
+    environment:
+      - DB_HOST=postgres-db
+      - DB_PASSWORD=mysecretpassword
+      - DB_USERNAME=postgres
+      - DB_NAME=mydb
+      - DB_PORT=5432
+    ports:
+      - 8080:8080
+    # Postgres takes a few seconds to be ready.
+    depends_on:
+      postgres-db:
+        condition: service_healthy
+
+volumes:
+  postgres-data:
