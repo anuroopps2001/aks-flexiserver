@@ -10,7 +10,7 @@ executors:
 
 jobs:
 # JOB 1: Test and lint
-  test:
+  test-and-lint:
     executor: go-toolchain
     steps:
       - checkout
