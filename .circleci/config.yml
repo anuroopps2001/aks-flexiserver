@@ -78,7 +78,8 @@ jobs:
             git config --global user.name "CircleCI Bot"
             
             cd go-db-application
-            
+            echo "List deployment yaml files"
+            ls -ltr k8s/go-db-app | grep -i deployment
             # Use sed to update the image tag
             TAG=0.1.${CIRCLE_BUILD_NUM}
             sed -i "s|image: anuroop21/go-db-application:.*|image: anuroop21/go-db-application:${TAG}|g" k8s/go-db-app/go-app-deployment.yaml
