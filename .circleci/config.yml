@@ -1,0 +1,30 @@
+version: 2.1
+
+jobs:
+  test-and-deploy-nginx-demo:
+    docker:
+      - image: mcr.microsoft.com/azure-cli:latest
+    steps:
+      - checkout
+      - run:
+          name: Deploy Demo to South India
+          command: |
+            # login into azure 
+            az login --service-principal -u $AZURE_SP -p $AZURE_SP_PASSWORD --tenant $AZURE_TENANT
+
+            # Get AKS credentials
+            az aks get-credentials --resource-group $RESOURCE_GROUP --name $AKS_CLUSTER_NAME
+
+            # 3. Apply the simple demo
+            kubectl apply -f demo-deployment/hello-aks.yaml
+
+            # 4. Wait for the IP (Verification)
+            echo "Waiting for loadbalancer IP"
+            sleep 10
+            kubectl get svc hello-aks
+
+workflows:
+  demo-pipeline:
+    jobs:
+      - test-and-deploy-nginx-demo
+      

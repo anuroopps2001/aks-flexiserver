@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name:  hello-aks
+spec:
+  selector:
+    matchLabels:
+      app: hello-aks
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app:  hello-aks
+    spec:
+      containers:
+      - name:  nginx
+        image:  mcr.microsoft.com/oss/nginx/nginx:1.15.5-alpine
+        ports:
+        - containerPort:  80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: hello-aks
+spec:
+  selector:
+    app: hello-aks
+  type: LoadBalancer
+  ports:
+  - port: 80
