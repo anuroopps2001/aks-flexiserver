@@ -46,7 +46,7 @@ jobs:
           name: Build Docker image
           command: |
             TAG=0.1.${CIRCLE_BUILD_NUM}
-            docker build -f Docker/Dockerfile -t $IMAGE_NAME:$TAG ./go-db-application/go-application
+            docker build -f Docker/Dockerfile -t $IMAGE_NAME:$TAG .
       - run:
           name: Security scan
           command: |
