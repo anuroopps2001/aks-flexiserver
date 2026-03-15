@@ -1,35 +1,16 @@
 version: 2.1
 
-jobs:
-  test-and-deploy-nginx-demo:
+executors:
+  go-toolchain:
     docker:
-      - image: mcr.microsoft.com/azure-cli:latest
+      - image: golang:1.24.11-alpine3.23
+    environment:
+      GOCACHE: /tmp/go-cache
+
+jobs:
+  test:
+    executor: go-toolchain
     steps:
       - checkout
-      - run:
-          name: Install Kubelogin and Deploy
-          command: |
-            # Install kubelogin
-            az aks install-cli
-
-            # 2. Login into azure 
-            az login --service-principal -u $AZURE_SP -p $AZURE_SP_PASSWORD --tenant $AZURE_TENANT
-
-            # 3. Get AKS credentials
-            az aks get-credentials --resource-group $RESOURCE_GROUP --name $AKS_CLUSTER_NAME
-            
-            # 4. CONVERT the config (The "Major" Step)
-            # This tells kubectl: "Don't ask for a device code, use the Azure CLI token!"
-
-            # 5. Apply the simple demo
-            kubectl apply -f demo-deployment/hello-aks.yaml
-
-            # 6. Wait for the IP (Verification)
-            echo "Waiting for loadbalancer IP"
-            sleep 10
-            kubectl get svc hello-aks
-
-workflows:
-  demo-pipeline:
-    jobs:
-      - test-and-deploy-nginx-demo
+      - run: |
+          cd go-application && go test ./...
