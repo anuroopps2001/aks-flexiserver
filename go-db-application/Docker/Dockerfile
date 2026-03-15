@@ -9,7 +9,7 @@ ENV CGO_ENABLED=0 \
 WORKDIR /app
 
 # Copy go.mod and go.sum files for dependency installation into workdir
-COPY . .  
+COPY go-db-application/go-application/go.mod go-db-application/go-application/go.sum ./
 # Based on the build context for Jenkins, build context has been modified in Jenkinsfile
 
 
@@ -18,7 +18,7 @@ RUN go mod download
 
 
 # Copy the entire application source
-COPY . .
+COPY go-db-application/go-application/ .
 
 RUN go build -o app
 
