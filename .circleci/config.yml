@@ -77,11 +77,11 @@ jobs:
             git config --global user.email "circleci-bot@example.com"
             git config --global user.name "CircleCI Bot"
             
-            cd go-db-application/k8s/go-db-app
+            cd go-db-application
             
             # Use sed to update the image tag
             TAG=0.1.${CIRCLE_BUILD_NUM}
-            sed -i "s|image: anuroop21/go-db-application:.*|image: anuroop21/go-db-application:${TAG}|g" go-app-deployment.yaml
+            sed -i "s|image: anuroop21/go-db-application:.*|image: anuroop21/go-db-application:${TAG}|g" k8s/go-app-deployment.yaml
 
             # Commit and Push with [skip ci] to avoid infinite loops
             git add go-app-deployment.yaml
