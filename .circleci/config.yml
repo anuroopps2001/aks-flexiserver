@@ -36,7 +36,7 @@ jobs:
 # STAGE 2: Build, Scan with Trivy, and Push to DockerHub
   build-push-scan:
     machine:
-      image: ubuntu-2204:2023.07.2  # This is the "What OS"
+      image: ubuntu-2204:current  # This is the "What OS"
     resource_class: medium          # This is the "How much Power" (medium is standard)
     steps:
       - checkout
