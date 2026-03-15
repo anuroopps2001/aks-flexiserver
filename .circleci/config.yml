@@ -1,128 +1,85 @@
-# This config was automatically generated from your source code
-# Stacks detected: artifact:go-executable:,deps:go:aks-store-demo/src/makeline-service,deps:node:aks-store-demo/tests,deps:python:aks-store-demo/src/ai-service,deps:rust:aks-store-demo/src/product-service
 version: 2.1
-orbs:
-  node: circleci/node@5
-  python: circleci/python@2
+
+executors:
+  go-toolchain:
+    docker:
+      - image: golang:1.24.11-alpine3.23
+    environment:
+      GOCACHE: /tmp/go-cache
+      GOMODCACHE: /tmp/go-mod
+
 jobs:
-  test-node:
-    # Install node dependencies and run tests
-    executor: node/default
-    working_directory: ~/project/aks-store-demo/tests
+  test-and-lint:
+    executor: go-toolchain
     steps:
-      - checkout:
-          path: ~/project
-      - node/install-packages:
-          pkg-manager: npm
-      - run:
-          name: Run tests
-          command: npm test --passWithNoTests
-  test-go:
-    # Install go modules and run tests
-    docker:
-      - image: cimg/go:1.20
-    working_directory: ~/project/aks-store-demo/src/makeline-service
-    steps:
-      - checkout:
-          path: ~/project
+      - checkout
       - restore_cache:
-          key: go-mod-{{ checksum "go.sum" }}
-      - run:
-          name: Download Go modules
-          command: go mod download
-      - run:
-          name: Print go mod help instructions
-          command: "echo \"go mod download will fail if you have private repositories \nOne way to fix this for private go modules that are hosted in github:\n  1. Add a GITHUB_TOKEN and GITHUB_USER to an org context. Please refer to https://circleci.com/docs/contexts/ for more informaiton on how to use contexts.\n  2. Add a .circleci/config.yml to your repository or use this config.yml as a starting template\n  3. Configure the jobs to use the newly created context which includes GITHUB_TOKEN and GITHUB_USER  \n  4. Before downloading the modules you will need to add a step to execute \\\"go env -w GOPRIVATE=github.com/<OrgNameHere>\\\". \n\tThis allows go mod to install private repos under OrgNameHere.\n  5. You will also need to run \\\"git config --global url.\\\"https://$GITHUB_USER:$GITHUB_TOKEN@github.com/<OrgNameHere>/\\\".insteadOf \\\"https://github.com/<OrgNameHere>/\\\"\\\"\n  6. Finally include the \\\"go mod download\\\" it should be able to fetch your private libraries now. \nFor gitlab private go modules, follow the same instructions as above but include your GITLAB_TOKEN and GITLAB_USER.\nThen use gitlab.com instead of github.com in steps 4 and 5.\nSee https://go.dev/ref/mod#private-modules for more details.\""
-          when: on_fail
+          keys:
+            - go-mod-{{ checksum "go-application/go.mod"}}
+      - run: 
+          name: Run Unit tests
+          command: |
+            cd go-application && go test ./... -coverprofile=coverage.out
       - save_cache:
-          key: go-mod-{{ checksum "go.sum" }}
           paths:
-            - /home/circleci/go/pkg/mod
-      - run:
-          name: Run tests
-          command: gotestsum --junitfile junit.xml
-      - store_test_results:
-          path: junit.xml
-  build-go-executables:
-    # Build go executables and store them as artifacts
-    docker:
-      - image: cimg/go:1.20
-    steps:
-      - checkout:
-          path: ~/project
-      - restore_cache:
-          key: go-mod-{{ checksum "go.sum" }}
-      - run:
-          name: Download Go modules
-          command: go mod download
-      - run:
-          name: Print go mod help instructions
-          command: "echo \"go mod download will fail if you have private repositories \nOne way to fix this for private go modules that are hosted in github:\n  1. Add a GITHUB_TOKEN and GITHUB_USER to an org context. Please refer to https://circleci.com/docs/contexts/ for more informaiton on how to use contexts.\n  2. Add a .circleci/config.yml to your repository or use this config.yml as a starting template\n  3. Configure the jobs to use the newly created context which includes GITHUB_TOKEN and GITHUB_USER  \n  4. Before downloading the modules you will need to add a step to execute \\\"go env -w GOPRIVATE=github.com/<OrgNameHere>\\\". \n\tThis allows go mod to install private repos under OrgNameHere.\n  5. You will also need to run \\\"git config --global url.\\\"https://$GITHUB_USER:$GITHUB_TOKEN@github.com/<OrgNameHere>/\\\".insteadOf \\\"https://github.com/<OrgNameHere>/\\\"\\\"\n  6. Finally include the \\\"go mod download\\\" it should be able to fetch your private libraries now. \nFor gitlab private go modules, follow the same instructions as above but include your GITLAB_TOKEN and GITLAB_USER.\nThen use gitlab.com instead of github.com in steps 4 and 5.\nSee https://go.dev/ref/mod#private-modules for more details.\""
-          when: on_fail
-      - save_cache:
-          key: go-mod-{{ checksum "go.sum" }}
+            - "/tmp/go-mod"
+          key: go-mod-{{ checksum "go-application/go.mod"}}
+      - persist_to_workspace:
+          root: .
           paths:
-            - /home/circleci/go/pkg/mod
-      - run:
-          name: Create the ~/artifacts directory if it doesn't exist
-          command: mkdir -p ~/artifacts
-      - run:
-          name: Build executables
-          command: go build -o ~/artifacts ./...
-      - store_artifacts:
-          path: ~/artifacts
-          destination: executables
-  test-python:
-    # Install dependencies and run tests
-    docker:
-      - image: cimg/python:3.8-node
-    working_directory: ~/project/aks-store-demo/src/ai-service
+            - go-application/coverage.out
+
+  build-and-push:
+    machine:
+      image: ubuntu-2204:2023.07.2
     steps:
-      - checkout:
-          path: ~/project
-      - python/install-packages
+      - checkout
       - run:
-          name: Run tests
-          command: pytest --junitxml=junit.xml || ((($? == 5)) && echo 'Did not find any tests to run.')
-      - store_test_results:
-          path: junit.xml
-  test-rust:
-    docker:
-      - image: cimg/rust:1.70
-    working_directory: ~/project/aks-store-demo/src/product-service
-    steps:
-      - checkout:
-          path: ~/project
-      - restore_cache:
-          key: cargo-{{ checksum "Cargo.lock" }}
+          name: Build Docker image
+          command: |
+            TAG=0.1.${CIRCLE_BUILD_NUM}
+            docker build -f Docker/Dockerfile -t $IMAGE_NAME:$TAG ./go-application
       - run:
-          command: cargo test
-      - save_cache:
-          key: cargo-{{ checksum "Cargo.lock" }}
-          paths:
-            - ~/.cargo
-  deploy:
-    # This is an example deploy job, not actually used by the workflow
+          name: Security scan
+          command: |
+            TAG=0.1.${CIRCLE_BUILD_NUM}
+            docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
+              aquasec/trivy:latest image --severity CRITICAL $IMAGE_NAME:$TAG
+
+      - run:
+          name: Push to DockerHub
+          command: |
+            TAG=0.1.${CIRCLE_BUILD_NUM}
+            echo "DOCKER_PASS" | docker login -u "$DOCKERHUB_USER" --password-stdin
+            docker push $IMAGE_NAME:$TAG
+            docker tag $IMAGE_NAME:$TAG $IMAGE_NAME:latest
+            docker push $IMAGE_NAME:latest
+  
+  update-manifests:
     docker:
       - image: cimg/base:stable
     steps:
-      # Replace this with steps to deploy to users
+      - checkout
       - run:
-          name: deploy
-          command: '#e.g. ./deploy.sh'
+          name: Update Deployment yaml in Git
+          command: |
+            git config --global user.email "circleci-bot@example.com"
+            git config --global user.name "CircleCI Bot"
+            cd k8s/go-db-app
+            TAG=0.1.${CIRCLE_BUILD_NUM}
+            sed -i "s|image: anuroop21/go-db-application:.*|image: anuroop21/go-db-application:${TAG}|g" go-app-deployment.yaml
+            git add go-app-deployment.yaml
+            git commit -m "chore: update image to ${TAG} [skip ci]"
+            git push origin main
+
 workflows:
-  build-and-test:
+  version: 2
+  go-app-pipeline:
     jobs:
-      - test-node
-      - test-go
-      - build-go-executables:
+      - test-and-lint
+      - build-and-push:
           requires:
-            - test-node
-            - test-go
-            - test-python
-            - test-rust
-      - test-python
-      - test-rust
-    # - deploy:
-    #     requires:
-    #       - build-go-executables
+            - test-and-lint
+      - update-manifests:
+         requires:
+           - build-and-push
