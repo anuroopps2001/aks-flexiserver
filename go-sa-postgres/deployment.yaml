@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: go-app
-        image: anuroop21/go-db-application:latest # Patched by CircleCI
+        image: anuroop21/go-db-application:0.1.84
         ports:
         - containerPort: 8080
         env:
