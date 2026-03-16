@@ -33,9 +33,9 @@ jobs:
             
             # Use sed to update the image line in your deployment.yaml
             # This looks for 'image: anuroop21/go-db-application:' and replaces the tag
-            sed -i "s|image: anuroop21/go-sa-postgres:.*|image: anuroop21/go-sa-postgres:$NEW_TAG|g" go-sa-postgres/deployment.yaml
+            sed -i "s|image: anuroop21/go-sa-postgres:.*|image: anuroop21/go-sa-postgres:$NEW_TAG|g" deployment.yaml
             
-            git add go-sa-postgres/deployment.yaml
+            git add deployment.yaml
             git commit -m "chore: update image tag to $NEW_TAG [skip ci]"
             git push origin feature/fullstack-integration
 
