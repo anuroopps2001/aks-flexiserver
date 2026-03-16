@@ -1,102 +1,48 @@
 version: 2.1
 
-executors:
-  go-toolchain:
-    docker:
-      - image: golang:1.24.11-alpine3.23
-    environment:
-      GOCACHE: /tmp/go-cache
-      GOMODCACHE: /tmp/go-mod
-
 jobs:
-# JOB 1: Test and lint
-  test-and-lint:
-    executor: go-toolchain
+  build-and-push:
+    docker:
+      - image: cimg/go:1.21
+    working_directory: ~/project
     steps:
       - checkout
-      # Restore dependencies to save time
-      - restore_cache:
-          keys:
-            - go-mod-{{ checksum "go-db-application/go-application/go.mod"}}
-      - run: 
-          name: Run Unit tests
-          command: |
-            cd go-db-application/go-application
-            go test ./... -coverprofile=coverage.out
-      - save_cache:
-          paths:
-            - "/tmp/go-mod"
-          key: go-mod-{{ checksum "go-db-application/go-application/go.mod"}}
-      # Save the coverage file for Sonar (optional) or artifacts
-      - persist_to_workspace:
-          root: .
-          paths:
-            - go-db-application/go-application/coverage.out
-
-# STAGE 2: Build, Scan with Trivy, and Push to DockerHub
-  build-push-scan:
-    machine:
-      image: ubuntu-2204:current  # This is the "What OS"
-    resource_class: medium          # This is the "How much Power" (medium is standard)
-    environment:
-      IMAGE_NAME: anuroop21/go-db-application
-    steps:
-      - checkout
+      - setup_remote_docker:
+          version: 20.10.24
       - run:
-          name: Build Docker image
+          name: Build and Push Docker Image
           command: |
-            echo "Current Directory"
-            pwd
-            TAG=0.1.${CIRCLE_BUILD_NUM}
-            docker build -f go-db-application/Docker/Dockerfile -t $IMAGE_NAME:$TAG .
-      - run:
-          name: Security scan
-          command: |
-            TAG=0.1.${CIRCLE_BUILD_NUM}
-            docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
-              aquasec/trivy:latest image --severity CRITICAL $IMAGE_NAME:$TAG
-
-      - run:
-          name: Push to DockerHub
-          command: |
-            TAG=0.1.${CIRCLE_BUILD_NUM}
+            cd go-sa-postgres
+            # Create a unique tag using the CircleCI build number
+            TAG="0.1.${CIRCLE_BUILD_NUM}"
+            IMAGE_NAME="anuroop21/go-sa-postgres"
+            
+            docker build -t $IMAGE_NAME:$TAG .
             echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USER" --password-stdin
             docker push $IMAGE_NAME:$TAG
-            docker tag $IMAGE_NAME:$TAG $IMAGE_NAME:latest
-            docker push $IMAGE_NAME:latest  # second push
-  
-  update-manifests:
-    docker:
-      - image: cimg/base:stable
-    steps:
-      - checkout
-      - run:
-          name: Update Deployment yaml in Git
-          command: |
-            # set identity
-            git config --global user.email "circleci-bot@example.com"
-            git config --global user.name "CircleCI Bot"
             
-            cd go-db-application/k8s/go-db-app/go-app-deployment
-            FILE_PATH=$(find . -name "go-app-deployment.yaml")
-            echo "Found file at: $FILE_PATH"
-            # Use sed to update the image tag
-            TAG=0.1.${CIRCLE_BUILD_NUM}
-            sed -i "s|image: anuroop21/go-db-application:.*|image: anuroop21/go-db-application:${TAG}|g" "$FILE_PATH"
+            # Save the tag for the next step
+            echo "export NEW_TAG=$TAG" >> $BASH_ENV
 
-            # Commit and Push with [skip ci] to avoid infinite loops
-            git add go-app-deployment.yaml
-            git commit -m "chore: update image to ${TAG} [skip ci]"
-            git push origin HEAD:feature/go-app-pipeline
+      - run:
+          name: Update Kubernetes Manifests (GitOps)
+          command: |
+            source $BASH_ENV
+            git config --global user.email "circleci@example.com"
+            git config --global user.name "CircleCI-Bot"
+            
+            # Use sed to update the image line in your deployment.yaml
+            # This looks for 'image: anuroop21/go-db-application:' and replaces the tag
+            sed -i "s|image: anuroop21/go-db-application:.*|image: anuroop21/go-db-application:$NEW_TAG|g" go-sa-postgres/deployment.yaml
+            
+            git add k8s/deployment.yaml
+            git commit -m "chore: update image tag to $NEW_TAG [skip ci]"
+            git push origin feature/fullstack-integration
 
 workflows:
-  version: 2
-  go-app-pipeline:
+  deploy-flow:
     jobs:
-      - test-and-lint
-      - build-push-scan:
-          requires:
-            - test-and-lint
-      - update-manifests:
-         requires:
-           - build-push-scan
+      - build-and-push:
+          filters:
+            branches:
+              only: feature/fullstack-integration
