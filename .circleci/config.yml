@@ -35,7 +35,7 @@ jobs:
             # This looks for 'image: anuroop21/go-db-application:' and replaces the tag
             sed -i "s|image: anuroop21/go-db-application:.*|image: anuroop21/go-db-application:$NEW_TAG|g" go-sa-postgres/deployment.yaml
             
-            git add k8s/deployment.yaml
+            git add go-sa-postgres/deployment.yaml
             git commit -m "chore: update image tag to $NEW_TAG [skip ci]"
             git push origin feature/fullstack-integration
 
