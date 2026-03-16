@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: go-app
-        image: anuroop21/go-db-application:0.1.85
+        image: anuroop21/go-sa-postgres:0.1.85
         ports:
         - containerPort: 8080
         env:
@@ -31,7 +31,7 @@ spec:
               name: app-secrets
               key: db-password
         - name: STORAGE_ACCOUNT_NAME
-          value: "yourstorageaccount"
+          value: "appstore1773637478"
         - name: STORAGE_ACCOUNT_KEY
           valueFrom:
             secretKeyRef:
