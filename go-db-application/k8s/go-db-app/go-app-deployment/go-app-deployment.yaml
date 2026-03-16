@@ -1,0 +1,117 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name:  go-db-app
+  namespace: default
+  labels:
+    app:  go-db
+  annotations:
+    kubernetes.io/change-cause: "Deploy anuroop21/go-db-application:v12 (Jenkins build 45)"  # This specific annotations lists rollout history value
+spec:
+  selector:
+    matchLabels:
+      app: go-db
+  replicas: 1
+  progressDeadlineSeconds: 60 # Kubernetest waits until progressDeadlineSeconds is exceeded, before rolling back to previous revisions and CI process, it should be as low as possible
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app:  go-db
+      annotations:
+        prometheus.io/scrape: "true" # Allowing prometheus to scrape
+        prometheus.io/path: "/metrics" # HTTP path for metricscd 
+        prometheus.io/port: "8080" # Port Prometheus should hit
+    spec:
+      initContainers:
+      - name: wait-for-postgres
+        image: postgres:17-alpine # A lightweight image with basic tools
+        # command: ['sh', '-c', 'until nc -z postgres-db-service 5432; do echo wait-for-postgres; sleep 2; done;']
+        command:
+          - sh
+          - -c
+          - |
+          - until pg_isready -h postgres-db-service -p 5432 -U postgres; do
+              echo "waiting for postgres-db to be ready.."
+              sleep 3
+              done
+        # # 'postgres-db-service' should be the actual name of your Postgres Service
+        # The initContainer runs a script or a command that repeatedly checks for the PostgreSQL service's availability 
+        # (e.g., using pg_isready or a simple tcpSocket check). The application container will only start after the initContainer 
+        # successfully finishes (i.e., the database is reachable).
+        # Init containers are exactly like regular containers, except:
+          # - Init containers always run to completion.
+          # - Each init container must complete successfully before the next one starts.
+      containers:
+      - name: go-db-app-container
+        image: anuroop21/go-db-application:0.1.70
+        imagePullPolicy: Always
+        # command: ["/bin/bash", "-c"]    # This was test rollback from Jenkins in case of deployment failures
+        # args:
+        #   - |
+        #      echo "Intentionally crashing app for rollback test"
+        #      exit 1
+        #   requests:
+        #     cpu: 100m
+        #     memory: 100Mi
+        #   limits:
+        #     cpu: 100m
+        #     memory: 100Mi
+        startupProbe: # Startup probe solves slow-starting apps
+          httpGet:   # If start probe fails, kubelet will kill the container and restarts and after multiple failures,
+          # pod will go into crashloopbackoff error
+            path: /healthz  # Endpoint that returns 200 OK after startup
+            port: 8080  # The pod is crashing because it starts up then immediately exits, thus Kubernetes restarts and the cycle continues.
+          failureThreshold: 30 # Allow 30 failures
+          periodSeconds: 10 # Check every 10 seconds (total time allowed: 30 * 10s = 300s)
+        readinessProbe:  # If readinessprobe fails, Pod is marked NotReady i,e Running   0/1   Ready
+          httpGet:
+            path: /ready  # Pod is removed from Service endpoints and no traffic reach the pod
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 10
+          timeoutSeconds: 2
+          failureThreshold: 3
+          successThreshold: 1
+        livenessProbe:  # Restart after app was running
+          httpGet: # pod still receive the traffic but Container gets killed mid-request and Clients see 5xx / connection resets
+            path: /healthz
+            port: 8080
+          periodSeconds: 20 # livenessProbe runs every periodSeconds
+          failureThreshold: 3  # for failure, kubelet increments failure count
+        env:
+        - name: DB_HOST
+          value: "postgres-db-service"
+        - name: DB_PORT
+          value: "5432"
+        - name: DB_NAME
+          valueFrom:
+            configMapKeyRef:
+              name: go-app-configmap
+              key: DB_NAME
+        - name: DB_USERNAME
+          valueFrom:
+            secretKeyRef:
+              key: DB_USERNAME
+              name: go-app-secret
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: DB_PASSWORD
+              name: go-app-secret
+        ports:
+        - name: http
+          containerPort:  8080
+          protocol: TCP
+        resources:
+          requests:
+            cpu: 50m
+            memory: 50Mi
+          limits:
+            cpu: 100m
+            memory: 100Mi
+      restartPolicy: Always
