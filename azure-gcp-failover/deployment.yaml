@@ -1,19 +1,28 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: go-db-app
+  name: go-gcp-db-app
   labels:
-    app: go-db
+    app: go-gcp-db
 spec:
-  replicas: 1
+  replicas: 3
   selector:
     matchLabels:
-      app: go-db
+      app: go-gcp-db
   template:
     metadata:
       labels:
-        app: go-db
+        app: go-gcp-db
     spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchLabels:
+                  app: go-gcp-db
+              topologyKey: "kubernetes.io/hostname"  # spread access different nodes based on their hostnames
       # Removed initContainers to prevent "stuck" pods during testing
       containers:
       # --- Tier 2: The Go App ---
@@ -30,7 +39,7 @@ spec:
         - name: DB_USERNAME
           value: "app_user"     # Hardcoded: Your GCP DB User
         - name: DB_PASSWORD
-          value: "your_password_here" # Hardcoded: Your GCP DB Password
+          value: "Anuroopps@2108" # Hardcoded: Your GCP DB Password
         ports:
         - containerPort: 8080
 
@@ -38,7 +47,7 @@ spec:
       - name: cloud-sql-proxy
         image: gcr.io/cloud-sql-connectors/cloud-sql-proxy:2.8.0
         args:
-          - "your-project-id:asia-south1:go-backend-db" # Hardcoded: Your Connection Name
+          - "aks-integration-lab:asia-south1:go-backend-db" # Hardcoded: Your Connection Name
           - "--port=5432"
           - "--credentials-file=/secrets/credentials.json"
         volumeMounts:

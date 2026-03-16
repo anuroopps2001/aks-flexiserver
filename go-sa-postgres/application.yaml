@@ -1,0 +1,18 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: go-db-app
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/anuroopps2001/aks-flexiserver.git
+    targetRevision: feature/fullstack-integration
+    path: go-sa-postgres/ # Use the folder where go-app-deployment.yaml sits
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: default
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true

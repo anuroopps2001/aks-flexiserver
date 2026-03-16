@@ -1,36 +1,38 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: go-app
+  name: go-app-gcp-postgres
   namespace: default
 spec:
   replicas: 2
   revisionHistoryLimit: 3  # Keeps only the 3 most recent old versions
   selector:
     matchLabels:
-      app: go-app
+      app: go-backend
   template:
     metadata:
       labels:
-        app: go-app
+        app: go-backend
     spec:
       containers:
       - name: go-app
-        image: anuroop21/go-sa-postgres:0.1.97
+        image: anuroop21/go-sa-postgres:0.1.96
         ports:
         - containerPort: 8080
         env:
         - name: DB_HOST
-          value: "first-server2873.postgres.database.azure.com"
+          value: "127.0.0.1"
+        - name: DB_PORT
+          value: "5432"
         - name: DB_NAME
-          value: "postgres"
+          value: "app_db"
         - name: DB_USER
-          value: "psqladmin"
+          value: "app_user"
         - name: DB_PASSWORD
           valueFrom:
             secretKeyRef:
-              name: app-secrets
-              key: db-password
+              name: db-passwords
+              key: password
         - name: STORAGE_ACCOUNT_NAME
           value: "appstore1773637478"
         - name: STORAGE_ACCOUNT_KEY
@@ -38,11 +40,26 @@ spec:
             secretKeyRef:
               name: app-secrets
               key: storage-key
+      - name: cloud-sql-proxy
+        image: gcr.io/cloud-sql-connectors/cloud-sql-proxy:2.8.0
+        args:
+          - "aks-integration-lab:asia-south1:go-backend-db"
+          - "--port=5432"
+          - "--credentials-file=/secrets/credentials.json"
+        volumeMounts:
+        - name: gcp-sa-key-volume
+          mountPath: /secrets
+          readOnly: true
+
+      volumes:
+      - name: gcp-sa-key-volume
+        secret:
+          secretName: gcp-sa-key
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: go-app-service
+  name: go-app-gcp-postgres
 spec:
   type: ClusterIP
   selector:
