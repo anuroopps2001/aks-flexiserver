@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: go-db-app
+  labels:
+    app: go-db
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: go-db
+  template:
+    metadata:
+      labels:
+        app: go-db
+    spec:
+      # Removed initContainers to prevent "stuck" pods during testing
+      containers:
+      # --- Tier 2: The Go App ---
+      - name: go-db-app-container
+        image: anuroop21/go-db-application:v4
+        imagePullPolicy: Always
+        env:
+        - name: DB_HOST
+          value: "127.0.0.1"
+        - name: DB_PORT
+          value: "5432"
+        - name: DB_NAME
+          value: "app_db"       # Hardcoded: Change to your GCP DB name
+        - name: DB_USERNAME
+          value: "app_user"     # Hardcoded: Your GCP DB User
+        - name: DB_PASSWORD
+          value: "your_password_here" # Hardcoded: Your GCP DB Password
+        ports:
+        - containerPort: 8080
+
+      # --- Tier 3 Bridge: Cloud SQL Proxy ---
+      - name: cloud-sql-proxy
+        image: gcr.io/cloud-sql-connectors/cloud-sql-proxy:2.8.0
+        args:
+          - "your-project-id:asia-south1:go-backend-db" # Hardcoded: Your Connection Name
+          - "--port=5432"
+          - "--credentials-file=/secrets/credentials.json"
+        volumeMounts:
+        - name: gcp-sa-key-volume
+          mountPath: /secrets
+          readOnly: true
+
+      volumes:
+      - name: gcp-sa-key-volume
+        secret:
+          secretName: gcp-sa-key # This is the only secret we keep (for the JSON key)
