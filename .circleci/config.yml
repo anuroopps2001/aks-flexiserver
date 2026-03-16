@@ -28,6 +28,8 @@ jobs:
           name: Update Kubernetes Manifests (GitOps)
           command: |
             cd go-sa-postgres
+            pwd
+            ls -ltr
             source $BASH_ENV
             git config --global user.email "circleci@example.com"
             git config --global user.name "CircleCI-Bot"
