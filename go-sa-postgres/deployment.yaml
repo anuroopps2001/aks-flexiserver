@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: go-app
-        image: anuroop21/go-sa-postgres:0.1.95
+        image: anuroop21/go-sa-postgres:0.1.96
         ports:
         - containerPort: 8080
         env:
