@@ -13,6 +13,8 @@ jobs:
           name: Build and Push Docker Image
           command: |
             cd go-sa-postgres
+            pwd
+            ls -ltr
             # Create a unique tag using the CircleCI build number
             TAG="0.1.${CIRCLE_BUILD_NUM}"
             IMAGE_NAME="anuroop21/go-sa-postgres"
