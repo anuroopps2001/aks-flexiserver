@@ -5,6 +5,7 @@ metadata:
   namespace: default
 spec:
   replicas: 2
+  revisionHistoryLimit: 3  # Keeps only the 3 most recent old versions
   selector:
     matchLabels:
       app: go-app
