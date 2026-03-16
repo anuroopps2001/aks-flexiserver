@@ -13,8 +13,6 @@ jobs:
           name: Build and Push Docker Image
           command: |
             cd go-sa-postgres
-            pwd
-            ls -ltr
             # Create a unique tag using the CircleCI build number
             TAG="0.1.${CIRCLE_BUILD_NUM}"
             IMAGE_NAME="anuroop21/go-sa-postgres"
@@ -29,6 +27,7 @@ jobs:
       - run:
           name: Update Kubernetes Manifests (GitOps)
           command: |
+            cd go-sa-postgres
             source $BASH_ENV
             git config --global user.email "circleci@example.com"
             git config --global user.name "CircleCI-Bot"
