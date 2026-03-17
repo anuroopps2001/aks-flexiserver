@@ -1,102 +1,90 @@
 version: 2.1
 
 executors:
-  go-toolchain:
+  go-executor:
     docker:
-      - image: golang:1.24.11-alpine3.23
-    environment:
-      GOCACHE: /tmp/go-cache
-      GOMODCACHE: /tmp/go-mod
+      - image: cimg/go:1.23
+    working_dir: ~/project
 
 jobs:
-# JOB 1: Test and lint
-  test-and-lint:
-    executor: go-toolchain
-    steps:
-      - checkout
-      # Restore dependencies to save time
-      - restore_cache:
-          keys:
-            - go-mod-{{ checksum "go-db-application/go-application/go.mod"}}
-      - run: 
-          name: Run Unit tests
-          command: |
-            cd go-db-application/go-application
-            go test ./... -coverprofile=coverage.out
-      - save_cache:
-          paths:
-            - "/tmp/go-mod"
-          key: go-mod-{{ checksum "go-db-application/go-application/go.mod"}}
-      # Save the coverage file for Sonar (optional) or artifacts
-      - persist_to_workspace:
-          root: .
-          paths:
-            - go-db-application/go-application/coverage.out
-
-# STAGE 2: Build, Scan with Trivy, and Push to DockerHub
-  build-push-scan:
-    machine:
-      image: ubuntu-2204:current  # This is the "What OS"
-    resource_class: medium          # This is the "How much Power" (medium is standard)
-    environment:
-      IMAGE_NAME: anuroop21/go-db-application
+  build:
+    executor: go-executor
     steps:
       - checkout
       - run:
-          name: Build Docker image
-          command: |
-            echo "Current Directory"
-            pwd
-            TAG=0.1.${CIRCLE_BUILD_NUM}
-            docker build -f go-db-application/Docker/Dockerfile -t $IMAGE_NAME:$TAG .
-      - run:
-          name: Security scan
-          command: |
-            TAG=0.1.${CIRCLE_BUILD_NUM}
-            docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
-              aquasec/trivy:latest image --severity CRITICAL $IMAGE_NAME:$TAG
+          name: Install dependencies
+          command: go mod tidy
 
       - run:
-          name: Push to DockerHub
+          name: Check formatting
+          command: test -z "$(gofmt -l .)"
+
+      - run:
+          name: Run go vet
+          command: go ver ./...
+
+      - run:
+          name: Scan go vulnarabilities
           command: |
-            TAG=0.1.${CIRCLE_BUILD_NUM}
-            echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USER" --password-stdin
-            docker push $IMAGE_NAME:$TAG
-            docker tag $IMAGE_NAME:$TAG $IMAGE_NAME:latest
-            docker push $IMAGE_NAME:latest  # second push
-  
-  update-manifests:
+            go install golang.org/x/vuln/cmd/govulncheck@latest
+            govulncheck ./...
+
+      - run:
+          name: Build application
+          command: go build -o app
+
+  docker-build-and-push:
     docker:
       - image: cimg/base:stable
     steps:
       - checkout
-      - run:
-          name: Update Deployment yaml in Git
-          command: |
-            # set identity
-            git config --global user.email "circleci-bot@example.com"
-            git config --global user.name "CircleCI Bot"
-            
-            cd go-db-application/k8s/go-db-app/go-app-deployment
-            FILE_PATH=$(find . -name "go-app-deployment.yaml")
-            echo "Found file at: $FILE_PATH"
-            # Use sed to update the image tag
-            TAG=0.1.${CIRCLE_BUILD_NUM}
-            sed -i "s|image: anuroop21/go-db-application:.*|image: anuroop21/go-db-application:${TAG}|g" "$FILE_PATH"
+      
+      - setup_remote_docker
 
-            # Commit and Push with [skip ci] to avoid infinite loops
-            git add go-app-deployment.yaml
-            git commit -m "chore: update image to ${TAG} [skip ci]"
-            git push origin HEAD:feature/go-app-pipeline
+      - run:
+          name: Lint Dockerfile
+          command: docker run --rm -i hadolint/hadolint < Dockerfile
+
+      - run:
+          name: Build the Docker image
+          command: |
+            TAG="${CIRCLE_BUILD_NUM}"
+            IMAGE_NAME="anuroop21/go-best-practice"
+            docker build -t $DOCKERHUB_USER/go-app:${CIRCLE_SHA1} .
+
+      - run:
+          name: Install Trivy
+          command: |
+            curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh
+
+      - run:
+          name: Scan Docker image
+          command: |
+            ./bin/trivy image --exit-code 1 --severity HIGH,CRITICAL --ignore-unfixed $DOCKERHUB_USER/go-app:${CIRCLE_SHA1}
+
+      - run:
+          name: Login to DockerHub
+          command: |
+            echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USER" --password-stdin
+
+      - run:
+          name: Push docker image
+          command: |
+            docker push $DOCKERHUB_USER/go-app:${CIRCLE_SHA1}
+            docker tag $DOCKERHUB_USER/go-app:${CIRCLE_SHA1} $DOCKERHUB_USER/go-app:latest
+            docker push $DOCKERHUB_USER/go-app:latest
 
 workflows:
   version: 2
-  go-app-pipeline:
+  build_and_push:
     jobs:
-      - test-and-lint
-      - build-push-scan:
+      - build
+      - docker-build-and-push:
           requires:
-            - test-and-lint
-      - update-manifests:
-         requires:
-           - build-push-scan
+            - build
+          filters:
+            branches:
+              only:
+                - feature/go-best-practices
+
+            
