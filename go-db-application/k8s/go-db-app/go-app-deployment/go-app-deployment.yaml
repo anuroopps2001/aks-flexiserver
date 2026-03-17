@@ -48,7 +48,7 @@ spec:
           # - Each init container must complete successfully before the next one starts.
       containers:
       - name: go-db-app-container
-        image: anuroop21/go-db-application:0.1.82
+        image: anuroop21/go-db-application:0.1.102
         imagePullPolicy: Always
         # command: ["/bin/bash", "-c"]    # This was test rollback from Jenkins in case of deployment failures
         # args:
