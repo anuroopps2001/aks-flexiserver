@@ -8,39 +8,42 @@ executors:
 jobs:
   build:
     executor: go-executor
-    working_directory: ~/project/aks-flexiserver/go-with-best-practices/
+    working_directory: ~/project
     steps:
       - checkout
       - run:
           name: Install dependencies
+          working_directory: aks-flexiserver/go-with-best-practices/src
           command: |
-            cd src
             go mod tidy
 
       - run:
           name: Check formatting
+          working_directory: aks-flexiserver/go-with-best-practices/src
           command: |
-            cd src && test -z "$(gofmt -l .)"
+            test -z "$(gofmt -l .)"
 
       - run:
           name: Run go vet
-          command: cd src && go ver ./...
+          working_directory: aks-flexiserver/go-with-best-practices/src
+          command: go ver ./...
 
       - run:
           name: Scan go vulnarabilities
+          working_directory: aks-flexiserver/go-with-best-practices/src
           command: |
-            cd src
             go install golang.org/x/vuln/cmd/govulncheck@latest
             govulncheck ./...
 
       - run:
           name: Build application
-          command: cd && go build -o app
+          working_directory: aks-flexiserver/go-with-best-practices/src
+          command: go build -o app
 
   docker-build-and-push:
     docker:
       - image: cimg/base:stable
-    working_directory: ~/project/aks-flexiserver/go-with-best-practices
+    working_directory: ~/project
     steps:
       - checkout
       
@@ -48,10 +51,12 @@ jobs:
 
       - run:
           name: Lint Dockerfile
+          working_directory: aks-flexiserver/go-with-best-practices/
           command: docker run --rm -i hadolint/hadolint < Dockerfile
 
       - run:
           name: Build the Docker image
+          working_directory: aks-flexiserver/go-with-best-practices/src
           command: |
             TAG="${CIRCLE_BUILD_NUM}"
             IMAGE_NAME="anuroop21/go-best-practice"
