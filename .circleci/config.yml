@@ -4,11 +4,11 @@ executors:
   go-executor:
     docker:
       - image: cimg/go:1.23
-    working_dir: ~/project
 
 jobs:
   build:
     executor: go-executor
+    working_directory: ~/project
     steps:
       - checkout
       - run:
@@ -36,6 +36,7 @@ jobs:
   docker-build-and-push:
     docker:
       - image: cimg/base:stable
+    working_directory: ~/project
     steps:
       - checkout
       
