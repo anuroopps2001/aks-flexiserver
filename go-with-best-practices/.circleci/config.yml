@@ -1,0 +1,90 @@
+version: 2.1
+
+executors:
+  go-executor:
+    docker:
+      - image: cimg/go:1.23
+    working_dir: ~/project
+
+jobs:
+  build:
+    executor: go-executor
+    steps:
+      - checkout
+      - run:
+          name: Install dependencies
+          command: go mod tidy
+
+      - run:
+          name: Check formatting
+          command: test -z "$(gofmt -l .)"
+
+      - run:
+          name: Run go vet
+          command: go ver ./...
+
+      - run:
+          name: Scan go vulnarabilities
+          command: |
+            go install golang.org/x/vuln/cmd/govulncheck@latest
+            govulncheck ./...
+
+      - run:
+          name: Build application
+          command: go build -o app
+
+  docker-build-and-push:
+    docker:
+      - image: cimg/base:stable
+    steps:
+      - checkout
+      
+      - setup_remote_docker
+
+      - run:
+          name: Lint Dockerfile
+          command: docker run --rm -i hadolint/hadolint < Dockerfile
+
+      - run:
+          name: Build the Docker image
+          command: |
+            TAG="${CIRCLE_BUILD_NUM}"
+            IMAGE_NAME="anuroop21/go-best-practice"
+            docker build -t $DOCKERHUB_USER/go-app:${CIRCLE_SHA1} .
+
+      - run:
+          name: Install Trivy
+          command: |
+            curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh
+
+      - run:
+          name: Scan Docker image
+          command: |
+            ./bin/trivy image --exit-code 1 --severity HIGH,CRITICAL --ignore-unfixed $DOCKERHUB_USER/go-app:${CIRCLE_SHA1}
+
+      - run:
+          name: Login to DockerHub
+          command: |
+            echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USER" --password-stdin
+
+      - run:
+          name: Push docker image
+          command: |
+            docker push $DOCKERHUB_USER/go-app:${CIRCLE_SHA1}
+            docker tag $DOCKERHUB_USER/go-app:${CIRCLE_SHA1} $DOCKERHUB_USER/go-app:latest
+            docker push $DOCKERHUB_USER/go-app:latest
+
+workflows:
+  version: 2
+  build_and_push:
+    jobs:
+      - build
+      - docker-build-and-push:
+          requires:
+            - build
+          filters:
+            branches:
+              only:
+                - feature/go-best-practices
+
+            
