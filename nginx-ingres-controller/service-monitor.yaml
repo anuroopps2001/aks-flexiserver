@@ -1,0 +1,18 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: go-app-servicemonitor
+  namespace: monitoring             # Keep the monitor where Prometheus is
+  labels:
+    release: loki-stack             # CRITICAL: This label lets Prometheus find this monitor
+spec:
+  selector:
+    matchLabels:
+      app: go-db              # Must match the 'app' label on your Service
+  namespaceSelector:
+    matchNames:
+      - default                     # The namespace where your Go App lives
+  endpoints:
+  - port: http                      # Must match the 'name' of the port in your Service
+    path: /metrics                  # The endpoint in your Go code
+    interval: 15s

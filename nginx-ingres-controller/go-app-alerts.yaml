@@ -1,0 +1,22 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: go-app-alerts
+  namespace: monitoring
+  labels:
+    release: loki-stack         # CRITICAL: Prometheus only "picks up" rules with this label
+spec:
+  groups:
+  - name: GoAppAlerts
+    rules:
+    - alert: HighErrorRate
+      expr: |
+        sum(rate(http_requests_total{app="go-db", status=~"5.."}[5m])) 
+        / 
+        sum(rate(http_requests_total{app="go-db"}[5m])) > 0.05
+      for: 2m                   # Only alert if it stays bad for 2 minutes
+      labels:
+        severity: critical
+      annotations:
+        summary: "High Error Rate on {{ $labels.app }}"
+        description: "App is returning 5xx errors for > 5% of traffic."

@@ -1,0 +1,7 @@
+controller:
+  service:
+    annotations:
+      # This tells Azure to use an Internal Load Balancer
+      service.beta.kubernetes.io/azure-load-balancer-internal: "true"
+    loadBalancerIP: "" # Leave empty for dynamic, or pick an IP like 10.1.0.100
+  replicaCount: 2

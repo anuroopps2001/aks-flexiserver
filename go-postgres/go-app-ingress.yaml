@@ -1,0 +1,21 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: go-app-ingress
+  namespace: default
+  annotations:
+    # Optional: If your Go app doesn't use SSL, NGINX handles it here
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+spec:
+  ingressClassName: nginx   # This tells Kubernetes to use the NGINX controller we just fixed
+  rules:
+  - host:  # The "domain name" we'll use to test
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: go-db-service # <-- Double check this name!
+            port:
+              number: 8080

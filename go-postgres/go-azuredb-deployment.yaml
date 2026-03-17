@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: go-db-app
+  labels:
+    app: go-db
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: go-db
+  template:
+    metadata:
+      labels:
+        app: go-db
+    spec:
+      # Removed initContainers to prevent "stuck" pods during testing
+      containers:
+      # --- Tier 2: The Go App ---
+      - name: go-db-app-container
+        image: anuroop21/go-db-application:v4
+        imagePullPolicy: Always
+        env:
+        - name: DB_HOST
+          value: "pg-flex-india.postgres.database.azure.com"
+        - name: DB_PORT
+          value: "5432"
+        - name: DB_NAME
+          value: "postgres"       # Hardcoded: Change to your GCP DB name
+        - name: DB_USERNAME
+          value: "psqladmin"     # Hardcoded: Your GCP DB User
+        - name: DB_PASSWORD
+          value: "SecurePassword123!" # Hardcoded: Your GCP DB Password
+        ports:
+        - containerPort: 8080
