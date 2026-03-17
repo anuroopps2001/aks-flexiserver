@@ -8,35 +8,39 @@ executors:
 jobs:
   build:
     executor: go-executor
-    working_directory: ~/project
+    working_directory: ~/project/aks-flexiserver/go-with-best-practices/
     steps:
       - checkout
       - run:
           name: Install dependencies
-          command: go mod tidy
+          command: |
+            cd src
+            go mod tidy
 
       - run:
           name: Check formatting
-          command: test -z "$(gofmt -l .)"
+          command: |
+            cd src && test -z "$(gofmt -l .)"
 
       - run:
           name: Run go vet
-          command: go ver ./...
+          command: cd src && go ver ./...
 
       - run:
           name: Scan go vulnarabilities
           command: |
+            cd src
             go install golang.org/x/vuln/cmd/govulncheck@latest
             govulncheck ./...
 
       - run:
           name: Build application
-          command: go build -o app
+          command: cd && go build -o app
 
   docker-build-and-push:
     docker:
       - image: cimg/base:stable
-    working_directory: ~/project
+    working_directory: ~/project/aks-flexiserver/go-with-best-practices
     steps:
       - checkout
       
