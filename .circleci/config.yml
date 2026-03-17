@@ -15,6 +15,8 @@ jobs:
           name: Install dependencies
           working_directory: aks-flexiserver/go-with-best-practices/src
           command: |
+            ls -ltr
+            pwd
             go mod tidy
 
       - run:
