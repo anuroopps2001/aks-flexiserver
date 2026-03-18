@@ -54,7 +54,7 @@ jobs:
       - run:
           name: Lint Dockerfile
           working_directory: go-with-best-practices/
-          command: docker run --rm -i hadolint/hadolint --ignore DL3018 < Dockerfile
+          command: docker run --rm -i hadolint/hadolint hadolint --ignore DL3018 - < Dockerfile
 
       - run:
           name: Build the Docker image
