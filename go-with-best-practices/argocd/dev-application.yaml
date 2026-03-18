@@ -1,0 +1,21 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: go-with-best-practices
+  namespace: argocd
+spec:
+  project: default
+
+  source:
+    repoURL: https://github.com/anuroopps2001/aks-flexiserver.git
+    targetRevision: feature/go-best-practices
+    path: go-with-best-practices/k8s/overlays/dev
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: default
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
