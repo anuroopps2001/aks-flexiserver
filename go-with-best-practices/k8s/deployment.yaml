@@ -26,13 +26,14 @@ spec:
     spec:
       securityContext:
         runAsNonRoot: true
+        runAsUser: 1000  # because, in Dockerfile, we didn't specify the user. And after this 'user' will be part of root group
       # initContainers:
         # Init containers are exactly like regular containers, except:
           # - Init containers always run to completion.
           # - Each init container must complete successfully before the next one starts.
       containers:
       - name: go-app
-        image:  docker.io/go-app:latest
+        image:  anuroop21/go-app:7399d86355c14fef844857858a784431dfb6c28e
         resources:
           requests:
             cpu: 100m
@@ -45,13 +46,13 @@ spec:
           name: go-app
         securityContext:
           allowPrivilegeEscalation: false
-          readOnlyRootFilesytem: true                  # cannot write at /
+          readOnlyRootFilesystem: true                  # cannot write at /
           capabilities:                                # Removes ALL extra privileges
             drop:
               - ALL
         volumeMounts:
           - name: tmp
             mountPath: /tmp                 # since our app cannot write at '/', we are mounting a path for it to write
-    volumes:
-      - name: tmp
-        emptyDir: {}
+      volumes:
+        - name: tmp
+          emptyDir: {}

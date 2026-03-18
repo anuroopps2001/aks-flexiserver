@@ -24,11 +24,8 @@ WORKDIR /app
 COPY --from=builder /app/app .
 
 # Set Permissions
-RUN chown -R appuser:appgroup /app
+RUN chown -R 0:0 /app && chmod -R g+rwX /app  # assign the permissions on source code
 
-
-# Switch to non-root user
-USER appuser
 
 # Expose non-root port
 EXPOSE 8080
