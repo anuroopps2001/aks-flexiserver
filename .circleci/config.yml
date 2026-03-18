@@ -85,6 +85,27 @@ jobs:
             docker push $DOCKERHUB_USER/go-app:${CIRCLE_SHA1}
             docker tag $DOCKERHUB_USER/go-app:${CIRCLE_SHA1} $DOCKERHUB_USER/go-app:latest
             docker push $DOCKERHUB_USER/go-app:latest
+  
+  update_kustomize_yaml:
+    working_directory: ~/project
+    docker:
+      - image: cimg/base:stable
+    steps:
+      - checkout
+      - run:
+          name: Update the tag
+          command: |
+            cd k8s/overlays/dev
+            sed -i "s/newTag: .*/newTag: ${CIRCLE_SHA1}" kustomization.yaml
+
+      - run:
+          name: Commit the changes
+          command: |
+            git config user.email "ci@circleci.com"
+            git config user.name "circleCI"
+            git add .
+            git commit -m "Updated image tag ${CIRCLE_SHA1} [skip ci]"
+            git push origin feature/go-best-practices
 
 workflows:
   version: 2
@@ -94,9 +115,11 @@ workflows:
       - docker-build-and-push:
           requires:
             - build
+      - update_kustomize_yaml:
+          requires:
+            - docker-build-and-push
           filters:
             branches:
               only:
                 - feature/go-best-practices
-
             

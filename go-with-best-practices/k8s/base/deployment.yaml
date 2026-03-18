@@ -33,7 +33,7 @@ spec:
           # - Each init container must complete successfully before the next one starts.
       containers:
       - name: go-app
-        image:  anuroop21/go-app:7399d86355c14fef844857858a784431dfb6c28e
+        image:  anuroop21/go-app:IMAGE_TAG
         resources:
           requests:
             cpu: 100m
