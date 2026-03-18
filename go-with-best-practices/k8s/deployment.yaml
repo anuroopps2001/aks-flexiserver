@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: go-app
+  namespace: default
+  labels:
+    app: go-app
+spec:
+  selector:
+    matchLabels:
+      app: go-app
+  replicas: 2
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: go-app
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8080"
+        prometheus.io/path: "/metrics"
+    spec:
+      securityContext:
+        runAsNonRoot: true
+      # initContainers:
+        # Init containers are exactly like regular containers, except:
+          # - Init containers always run to completion.
+          # - Each init container must complete successfully before the next one starts.
+      containers:
+      - name: go-app
+        image:  docker.io/go-app:latest
+        resources:
+          requests:
+            cpu: 100m
+            memory: 100Mi
+          limits:
+            cpu: 100m
+            memory: 100Mi
+        ports:
+        - containerPort:  8080
+          name: go-app
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesytem: true                  # cannot write at /
+          capabilities:                                # Removes ALL extra privileges
+            drop:
+              - ALL
+        volumeMounts:
+          - name: tmp
+            mountPath: /tmp                 # since our app cannot write at '/', we are mounting a path for it to write
+    volumes:
+      - name: tmp
+        emptyDir: {}
