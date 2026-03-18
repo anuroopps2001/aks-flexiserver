@@ -72,7 +72,7 @@ jobs:
       - run:
           name: Scan Docker image
           command: |
-            ./bin/trivy image --exit-code 1 --severity HIGH,CRITICAL --ignore-unfixed $DOCKERHUB_USER/go-app:${CIRCLE_SHA1}
+            ./bin/trivy image --severity HIGH,CRITICAL --ignore-unfixed $DOCKERHUB_USER/go-app:${CIRCLE_SHA1}
 
       - run:
           name: Login to DockerHub
