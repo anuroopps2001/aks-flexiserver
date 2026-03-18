@@ -94,6 +94,7 @@ jobs:
       - checkout
       - run:
           name: Update the tag
+          working_directory: go-with-best-practices/
           command: |
             cd k8s/overlays/dev
             sed -i "s/newTag: .*/newTag: ${CIRCLE_SHA1}" kustomization.yaml

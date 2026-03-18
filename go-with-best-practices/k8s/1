@@ -1,6 +1,0 @@
-resources:
-  - ../../base   # checkout the manifests from that specific dir
-
-images:
-  - name: anuroop21/go-app
-    tag: IMAGE_TAG

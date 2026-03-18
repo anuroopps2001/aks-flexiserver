@@ -3,4 +3,4 @@ resources:
 
 images:
   - name: anuroop21/go-app
-    tag: latest
+    newTag: latest
