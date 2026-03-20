@@ -1,0 +1,80 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    azure.workload.identity/use: "true"
+    app: go-app
+  name: azure-keyvault-go-app
+  namespace: default
+spec:
+  progressDeadlineSeconds: 600
+  replicas: 2
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app: go-app
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      annotations:
+        kubectl.kubernetes.io/restartedAt: "2026-03-20T07:49:26Z"
+        prometheus.io/path: /metrics
+        prometheus.io/port: "8080"
+        prometheus.io/scrape: "true"
+      creationTimestamp: null
+      labels:
+        app: go-app
+    spec:
+      serviceAccountName: go-kv-sa
+      containers:
+      - image: anuroop21/go-app:7ac505314cba18ec7166426e80f9a0a86ed53552
+        imagePullPolicy: IfNotPresent
+        name: go-app
+        ports:
+        - containerPort: 8080
+          name: go-app
+          protocol: TCP
+        env:
+        - name: DB_PASSWORD_FILE
+          value: "/mnt/secrets/db-password"
+        resources:
+          limits:
+            cpu: 100m
+            memory: 100Mi
+          requests:
+            cpu: 100m
+            memory: 100Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /tmp
+          name: tmp
+        - name: secrets-store
+          mountPath: "/mnt/secrets"
+          readOnly: true
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+      terminationGracePeriodSeconds: 30
+      volumes:
+      - emptyDir: {}
+        name: tmp
+      - name: secrets-store
+        csi:
+          driver: secrets-store.csi.k8s.io
+          readOnly: true
+          volumeAttributes:
+            secretProviderClass: kv-secrets

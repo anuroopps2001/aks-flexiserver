@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: go-kv-sa
+  namespace: default
+  annotations:
+    azure.workload.identity/client-id: febc1b80-d826-4c3f-9387-ae50515911f2   # client id of azure identity created for KeyVault
