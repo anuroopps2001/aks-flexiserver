@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: go-app-sa
+  namespace: default
+  annotations:
+    azure.workload.identity/client-id: a6a3817d-6ed1-4579-9e4b-60b49fa22032 

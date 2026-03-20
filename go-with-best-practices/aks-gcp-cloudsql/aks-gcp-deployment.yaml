@@ -1,0 +1,74 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: go-gcp-db-app
+  labels:
+    app: go-gcp-db
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: go-gcp-db
+  template:
+    metadata:
+      labels:
+        app: go-gcp-db
+    spec:
+      serviceAccountName: go-app-sa
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchLabels:
+                  app: go-gcp-db
+              topologyKey: "kubernetes.io/hostname"  # spread access different nodes based on their hostnames
+      # Removed initContainers to prevent "stuck" pods during testing
+      containers:
+      # --- Tier 2: The Go App ---
+      - name: go-db-app-container
+        image: anuroop21/go-db-application:v4
+        imagePullPolicy: Always
+        env:
+        - name: DB_HOST
+          value: "127.0.0.1"
+        - name: DB_PORT
+          value: "5432"
+        - name: DB_NAME
+          value: "app_db"       # Hardcoded: Change to your GCP DB name
+        - name: DB_USERNAME
+          value: "cloudsql-sa@aks-integration-lab.iam"     # Hardcoded: Your GCP DB User
+        - name: DB_PASSWORD
+          value: "" # Hardcoded: Your GCP DB Password
+        ports:
+        - containerPort: 8080
+
+      # --- Tier 3 Bridge: Cloud SQL Proxy ---
+      - name: cloud-sql-proxy
+        image: gcr.io/cloud-sql-connectors/cloud-sql-proxy:2.8.0
+        args: 
+          - "--auto-iam-authn"
+          - "--port=5432"
+          - "aks-integration-lab:us-central1:postgres-private" # Hardcoded: Your Cloudsql Postgres instance Connection Name
+        env:
+          - name: GOOGLE_APPLICATION_CREDENTIALS
+            value: /config/cloudsql-auth-config.json
+        volumeMounts:
+          - name: gcp-token
+            mountPath: /var/run/secrets/tokens
+            readOnly: true
+          - name: proxy-config-val
+            mountPath: /config
+            readOnly: true
+      volumes:
+      - name: proxy-config-val
+        configMap:
+          name: proxy-config    # Json file mounted as configmap
+      - name: gcp-token
+        projected:
+          sources:
+          - serviceAccountToken:
+              path: gcp-token.json
+              audience: https://iam.googleapis.com/projects/520425462989/locations/global/workloadIdentityPools/aks-pool/providers/aks-provider
+              expirationSeconds: 3600
