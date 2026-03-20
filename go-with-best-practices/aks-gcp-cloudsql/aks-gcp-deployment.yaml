@@ -38,7 +38,7 @@ spec:
         - name: DB_NAME
           value: "app_db"       # Hardcoded: Change to your GCP DB name
         - name: DB_USERNAME
-          value: "cloudsql-sa@aks-integration-lab.iam.gserviceaccount.com"     # Hardcoded: Your GCP DB User
+          value: "cloudsql-sa@aks-integration-lab.iam"     # Hardcoded: Your GCP DB User
         - name: DB_PASSWORD
           value: "" # Hardcoded: Your GCP DB Password
         ports:
