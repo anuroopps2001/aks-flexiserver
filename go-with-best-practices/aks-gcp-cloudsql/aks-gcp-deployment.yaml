@@ -51,6 +51,7 @@ spec:
           - "--auto-iam-authn"
           - "--port=5432"
           - "aks-integration-lab:us-central1:postgres-private" # Hardcoded: Your Cloudsql Postgres instance Connection Name
+          - "--private-ip"
         env:
           - name: GOOGLE_APPLICATION_CREDENTIALS
             value: /config/cloudsql-auth-config.json
