@@ -154,8 +154,12 @@ jobs:
           name: Create a Promotion branch from staging
           command: |
             cd gitops-repo
-            BRANCH="promote-${CIRCLE_SHA1}"
+            echo "Repo Structure"
+            ls -R
 
+            BRANCH="promote-${CIRCLE_SHA1}"
+            
+            # create a promote branch which should be a copy of staging branch at that stage (Basically a copy of staging branch)
             git checkout -b $BRANCH origin/staging
 
             git config user.email "ci@circle.com"
