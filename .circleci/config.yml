@@ -153,8 +153,9 @@ jobs:
       - run:
           name: Create a Promotion branch from staging
           command: |
+            pwd
             cd gitops-repo
-
+            pwd
             echo "Repo Structure"
             ls -R
 
