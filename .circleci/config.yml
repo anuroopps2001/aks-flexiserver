@@ -92,6 +92,9 @@ jobs:
       - image: cimg/base:stable
     steps:
       - checkout
+      - add_ssh_keys:
+          fingerprints:
+            - "SHA256:3VMsYjR8Hf6fJiov9u9gfdlXB+PpAy8yV9XC0EVaDvE"
       - run:
           name: Update the tag
           working_directory: go-with-best-practices/
