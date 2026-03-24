@@ -103,6 +103,11 @@ jobs:
             sed -i "s/newTag: .*/newTag: ${CIRCLE_SHA1}/g" kustomization.yaml
 
       - run:
+          name: Show SSH identities
+          command: |
+            ssh-add -l || echo "No SSH identities loaded"
+
+      - run:
           name: Commit the changes
           command: |
             git config user.email "ci@circleci.com"
