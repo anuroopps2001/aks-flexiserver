@@ -186,3 +186,10 @@ workflows:
       - update_gitops_dev:
           requires:
             - docker-build-and-push
+      - smoke_test_dev:
+          requires:
+            - update_gitops_dev
+      - create_pr_staging:
+          requires:
+            - smoke_test_dev
+
