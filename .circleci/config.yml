@@ -89,6 +89,15 @@ jobs:
     docker:
       - image: cimg/base:stable
     steps:
+      - add_ssh_keys:
+          fingerprints:
+            - "SHA256:3VMsYjR8Hf6fJiov9u9gfdlXB+PpAy8yV9XC0EVaDvE"
+      - run:
+          name: Add GitHub to known_hosts
+          command: |
+            mkdir -p ~/.ssh
+            ssh-keyscan github.com >> ~/.ssh/known_hosts
+
       - run:
           name: Clone gitops repo (Dev Branch)
           command: |
