@@ -120,6 +120,61 @@ jobs:
             git commit -m "dev: Updated image tag ${CIRCLE_SHA1} [skip ci]" || echo "No changes"
             git push origin dev
 
+  smoke_test_dev:
+    docker:
+      - image: cimg/base:stable
+    steps:
+      - run:
+          name: Wait for deployment
+          command: |
+            echo "Waiting for Argocd deployment"
+            sleep 40
+
+      - run: 
+          name: Smoke test (Dev)
+          command: |
+            echo "Running smoke tests..!!"
+            RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" http://go.app)
+            if [ "$RESPONSE" -ne 200]; then
+              echo "Application is not responsive"
+              exit 1
+            fi
+
+  creating_pr_staging:
+    docker:
+      - image: cimg/base:stable
+    steps:
+      - run:
+          name: Clone GitOps Repo
+          command: |
+            git clone https://github.com/anuroopps2001/gitops-repo.git
+            cd gitops-repo
+
+      - run:
+          name: Create a Promotion branch
+          command: |
+            cd gitops-repo
+            BRANCH="promote-${CIRCLE_SHA1}"
+
+            git checkout -b $BRANCH origin/dev
+            git config user.email "ci@circle.com"
+            git config user.name "circleci"
+
+            git push origin $BRANCH
+
+      - run:
+          name: Create PR (dev -> staging)
+          command: |
+            curl -X POST https://api.github.com/repos/anuroopps2001/gitops-repo/pulls \
+            -H "Authorization: token ${GITHUB_TOKEN}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            -d "{
+              \"title\": \"Promote ${CIRCLE_SHA1} to staging\",
+              \"head\": \"${BRANCH}\",
+              \"base\": \"staging\",
+              \"body\": \"Auto PR after successful dev deployment and smoke test.\"
+            }"
+
 workflows:
   version: 2
   build_and_push:
