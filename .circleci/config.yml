@@ -61,7 +61,6 @@ jobs:
           working_directory: go-with-best-practices/
           command: |
             TAG="${CIRCLE_BUILD_NUM}"
-            IMAGE_NAME="anuroop21/go-best-practice"
             docker build -t $DOCKERHUB_USER/go-app:${CIRCLE_SHA1} .
 
       - run:
@@ -86,36 +85,31 @@ jobs:
             docker tag $DOCKERHUB_USER/go-app:${CIRCLE_SHA1} $DOCKERHUB_USER/go-app:latest
             docker push $DOCKERHUB_USER/go-app:latest
   
-  update_kustomize_yaml:
-    working_directory: ~/project
+  update_gitops_dev:
     docker:
       - image: cimg/base:stable
     steps:
-      - checkout
-      - add_ssh_keys:
-          fingerprints:
-            - "SHA256:3VMsYjR8Hf6fJiov9u9gfdlXB+PpAy8yV9XC0EVaDvE"
       - run:
-          name: Update the tag
-          working_directory: go-with-best-practices/
+          name: Clone gitops repo (Dev Branch)
           command: |
-            cd k8s/overlays/dev
-            sed -i "s/newTag: .*/newTag: ${CIRCLE_SHA1}/g" kustomization.yaml
+            git clone -b dev git@github.com:anuroopps2001/gitops-repo.git
+            cd gitops-repo
 
       - run:
-          name: Show SSH identities
+          name: Update the tag
           command: |
-            ssh-add -l || echo "No SSH identities loaded"
+            cd gitops-repo/overlays/dev
+            sed -i "s/newTag: .*/newTag: ${CIRCLE_SHA1}/g" kustomization.yaml
 
       - run:
           name: Commit the changes
           command: |
+            cd gitops-repo
             git config user.email "ci@circleci.com"
             git config user.name "circleCI"
             git add .
-            git commit -m "Updated image tag ${CIRCLE_SHA1} [skip ci]"
-            git pull --rebase origin feature/go-best-practices
-            git push origin feature/go-best-practices
+            git commit -m "dev: Updated image tag ${CIRCLE_SHA1} [skip ci]" || echo "No changes"
+            git push origin dev
 
 workflows:
   version: 2
@@ -125,11 +119,6 @@ workflows:
       - docker-build-and-push:
           requires:
             - build
-      - update_kustomize_yaml:
+      - update_gitops_dev:
           requires:
             - docker-build-and-push
-          filters:
-            branches:
-              only:
-                - feature/go-best-practices
-            
