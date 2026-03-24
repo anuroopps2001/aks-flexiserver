@@ -159,7 +159,8 @@ jobs:
             git checkout -b $BRANCH origin/dev
             git config user.email "ci@circle.com"
             git config user.name "circleci"
-
+            
+            git remote set-url origin https://${GITHUB_TOKEN}@github.com/anuroopps2001/gitops-repo.git
             git push origin $BRANCH
 
       - run:
