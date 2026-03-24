@@ -114,6 +114,7 @@ jobs:
             git config user.name "circleCI"
             git add .
             git commit -m "Updated image tag ${CIRCLE_SHA1} [skip ci]"
+            git pull --rebase origin feature/go-best-practices
             git push origin feature/go-best-practices
 
 workflows:
