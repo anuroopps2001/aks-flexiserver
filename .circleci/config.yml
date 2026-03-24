@@ -151,15 +151,24 @@ jobs:
             cd gitops-repo
 
       - run:
-          name: Create a Promotion branch
+          name: Create a Promotion branch from staging
           command: |
             cd gitops-repo
             BRANCH="promote-${CIRCLE_SHA1}"
 
-            git checkout -b $BRANCH origin/dev
+            git checkout -b $BRANCH origin/staging
+
             git config user.email "ci@circle.com"
             git config user.name "circleci"
             
+            cd overlays/staging
+            sed -i "s/newTag: .*/newTag: ${CIRCLE_SHA1}/g" kustomization.yaml
+
+            cd ../..
+
+            git add .
+            git commit -m "promote ${CIRCLE_SHA1} to staging"
+
             git remote set-url origin https://${GITHUB_TOKEN}@github.com/anuroopps2001/gitops-repo.git
             git push origin $BRANCH
 
