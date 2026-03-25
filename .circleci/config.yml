@@ -97,7 +97,7 @@ jobs:
           name: Install Infrastructure Tools
           command: |
             # apk is the package manager for Alpine (used by the Azure image)
-            apk add --no-cache openssh-client git
+            tdnf install -y openssh
 
       - add_ssh_keys:
           fingerprints:
