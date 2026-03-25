@@ -141,7 +141,7 @@ jobs:
             az login --service-principal \
               -u "$AZURE_CLIENT_ID" \
               -t "$AZURE_TENANT_ID" \
-              --federated_token "$CIRCLE_OIDC_TOKEN_V2"
+              --federated-token "$CIRCLE_OIDC_TOKEN_V2"
 
             # Get AKS credentials (this updates ~/.kube/config)
             az aks get-credentials -g rg-aks-southindia --name aks-private-india
