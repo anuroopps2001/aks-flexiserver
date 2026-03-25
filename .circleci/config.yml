@@ -50,6 +50,7 @@ jobs:
       - checkout
       
       - setup_remote_docker
+          docker_layer_caching: true  # This "remembers" the layers for next time
 
       - run:
           name: Lint Dockerfile
@@ -87,8 +88,10 @@ jobs:
   
   update_gitops_dev:
     docker:
-      - image: cimg/base:stable
+      - image: mcr.microsoft.com/azure-cli:latest
     steps:
+      - setup_remote_docker
+          docker_layer_caching: true  # This "remembers" the layers for next time
       - add_ssh_keys:
           fingerprints:
             - "SHA256:3VMsYjR8Hf6fJiov9u9gfdlXB+PpAy8yV9XC0EVaDvE"
