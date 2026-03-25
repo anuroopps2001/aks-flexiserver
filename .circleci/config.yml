@@ -132,7 +132,7 @@ jobs:
 
   smoke_test_dev:
     machine: true
-    resource_class: anuroopps/aks-deployer
+    resource_class: anuroopps2001/aks-deployer
     steps:
       - run:
           name: Authenticate with Azure via OIDC
