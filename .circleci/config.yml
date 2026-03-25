@@ -133,8 +133,8 @@ jobs:
               -t "$AZURE_TENANT_ID" \
               --federated_token "$CIRCLE_OIDC_TOKEN_V2"
 
-           # Get AKS credentials (this updates ~/.kube/config)
-           az aks get-credentials -g rg-aks-southindia --name aks-private-india
+            # Get AKS credentials (this updates ~/.kube/config)
+            az aks get-credentials -g rg-aks-southindia --name aks-private-india
          
       - run:
           name: Wait for Deployment rollout
