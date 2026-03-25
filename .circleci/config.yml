@@ -122,24 +122,41 @@ jobs:
 
   smoke_test_dev:
     docker:
-      - image: cimg/base:stable
+      - image: cimg/azure:2024.01 # Use an image with Azure CLI and kubectl
     steps:
       - run:
-          name: Wait for deployment
+          name: Authenticate with Azure via OIDC
           command: |
-            echo "Waiting for Argocd deployment"
-            sleep 40  # because reconciliation timeout for sycning argocd app is kept for 30s
+            # Login using the OIDC token from CircleCI
+            az login --service-principal \
+              -u "$AZURE_CLIENT_ID" \
+              -t "$AZURE_TENANT_ID"
+              --federated_token "$CIRCLE_OIDC_TOKEN_V2"
+
+           # Get AKS credentials (this updates ~/.kube/config)
+           az aks get-credentials -g rg-aks-southindia --name aks-private-india
+         
+      - run:
+          name: Wait for Deployment rollout
+          command: |
+            kubectl rollout status deployment/go-app -n go-app-dev --timeout=90s
 
       - run: 
-          name: Smoke test (Dev)
+          name: Internal Smoke Test (In-Cluster Curl)
           command: |
-            echo "Running smoke tests..!!"
-            RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" http://staging.go.app.local/)
-            echo "Application response"
-            echo $RESPONSE
+            echo "Running smoke tests from inside the cluster..."
 
-            if [ "$RESPONSE" -ne 200]; then
-              echo "Application is not responsive"
+            # 1. Exec into that pod to curl the SERVICE (not the local hostname)
+            # This proves the app is internally healthy and the Service is routing traffic.
+            RESPONSE=$(kubectl run smoke-tester --rm -i --restart=Never \
+              --image=curlimages/curl \
+              -n go-app-dev \
+              -- curl -s -o /dev/null -w "%{http_code}" http://go-app-service:8080/ 2>/dev/null)
+
+            RESPONSE_NUM=$(echo "$RESPONSE" | grep -o '[0-9]\+')
+
+            if [ "$RESPONSE_NUM" -ne 200]; then
+              echo "Smoke test failed! App returned $RESPONSE"
               exit 1
             fi
 
