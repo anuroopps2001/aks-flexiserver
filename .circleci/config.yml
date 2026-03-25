@@ -153,19 +153,20 @@ jobs:
       - run:
           name: Create a Promotion branch from staging
           command: |
-            pwd
             cd gitops-repo
-            pwd
-            echo "Repo Structure"
-            ls -R
 
-            BRANCH="promote-${CIRCLE_SHA1}"
-            
-            # create a promote branch which should be a copy of staging branch at that stage (Basically a copy of staging branch)
-            git checkout -b $BRANCH origin/staging
+            BRANCH_NAME="promote-${CIRCLE_SHA1}"
+
+            # CRITICAL: Save this variable for the NEXT step
+            # CircleCI provides a special file path stored in the variable $BASH_ENV. At the start of every step, CircleCI automatically runs source $BASH_ENV.
+            echo "export BRANCH=$BRANCH_NAME" >> $BASH_ENV
 
             git config user.email "ci@circle.com"
             git config user.name "circleci"
+            
+            # create a promote branch which should be a copy of staging branch at that stage (Basically a copy of staging branch)
+            git checkout -b $BRANCH_NAME origin/staging
+
             
             cd overlays/staging
             sed -i "s/newTag: .*/newTag: ${CIRCLE_SHA1}/g" kustomization.yaml
@@ -173,20 +174,23 @@ jobs:
             cd ../..
 
             git add .
-            git commit -m "promote ${CIRCLE_SHA1} to staging"
+            git commit -m "promote ${CIRCLE_SHA1} to new promotion branch"
 
             git remote set-url origin https://${GITHUB_TOKEN}@github.com/anuroopps2001/gitops-repo.git
-            git push origin $BRANCH
+            git push origin $BRANCH_NAME
 
       - run:
           name: Create PR (dev -> staging)
           command: |
+            # CircleCI automatically sources $BASH_ENV at the start of every step
+            echo "Creating PR for branch: ${BRANCH}"
+
             curl -X POST https://api.github.com/repos/anuroopps2001/gitops-repo/pulls \
             -H "Authorization: token ${GITHUB_TOKEN}" \
             -H "Accept: application/vnd.github.v3+json" \
             -d "{
               \"title\": \"Promote ${CIRCLE_SHA1} to staging\",
-              \"head\": \"${BRANCH}\",
+              \"head\": \"${BRANCH}\",   
               \"base\": \"staging\",
               \"body\": \"Auto PR after successful dev deployment and smoke test.\"
             }"
