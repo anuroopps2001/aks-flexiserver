@@ -1,0 +1,16 @@
+version: 2.1
+
+jobs:
+  test-runner:
+    machine: true
+    resource_class: anuroopps2001/aks-deployer
+
+    steps:
+      - run: echo "Runner is working"
+      - run: hostname
+      - run: uname -a
+
+workflows:
+  test:
+    jobs:
+      - test-runner
