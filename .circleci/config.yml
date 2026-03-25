@@ -165,7 +165,7 @@ jobs:
 
             RESPONSE_NUM=$(echo "$RESPONSE" | grep -o '[0-9]\+')
 
-            if [ "$RESPONSE_NUM" -ne 200]; then
+            if [ "$RESPONSE_NUM" -ne 200 ]; then
               echo "Smoke test failed! App returned $RESPONSE"
               exit 1
             fi
