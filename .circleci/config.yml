@@ -130,7 +130,7 @@ jobs:
             # Login using the OIDC token from CircleCI
             az login --service-principal \
               -u "$AZURE_CLIENT_ID" \
-              -t "$AZURE_TENANT_ID"
+              -t "$AZURE_TENANT_ID" \
               --federated_token "$CIRCLE_OIDC_TOKEN_V2"
 
            # Get AKS credentials (this updates ~/.kube/config)
