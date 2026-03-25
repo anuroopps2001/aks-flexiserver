@@ -203,6 +203,10 @@ workflows:
   build_and_push:
     jobs:
       - build
+          filters:
+            branches:
+              only:
+                - feature/go-best-practices
 
       - hold_for_approval:
           type: approval
@@ -219,7 +223,14 @@ workflows:
       - smoke_test_dev:
           requires:
             - update_gitops_dev
-      - creating_pr_staging:
+
+      # GATE 1: Approve promotion to Staging
+      - hold_for_staging:
+          type: approval
           requires:
             - smoke_test_dev
+
+      - creating_pr_staging:
+          requires:
+            - hold_for_staging
 
