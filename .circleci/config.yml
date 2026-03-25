@@ -132,7 +132,7 @@ jobs:
 
   smoke_test_dev:
     docker:
-      - image: cimg/azure:2024.01 # Use an image with Azure CLI and kubectl
+      - image: cimg/azure:2025.01 # Use an image with Azure CLI and kubectl
     steps:
       - run:
           name: Authenticate with Azure via OIDC
