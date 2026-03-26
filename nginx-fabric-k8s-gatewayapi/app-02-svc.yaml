@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: demo-svc-02
+  namespace: default
+spec:
+  ports:
+  - port: 80
+    protocol: TCP
+    targetPort: 5678
+  selector:
+    app: demo-02
+  sessionAffinity: None
+  type: ClusterIP
