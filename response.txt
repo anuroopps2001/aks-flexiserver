@@ -1,6 +1,0 @@
-HTTP/1.1 200 OK
-Date: Tue, 24 Mar 2026 10:39:22 GMT
-Content-Type: text/plain; charset=utf-8
-Content-Length: 25
-Connection: keep-alive
-
