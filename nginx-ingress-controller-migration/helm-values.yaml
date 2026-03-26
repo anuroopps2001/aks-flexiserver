@@ -1,0 +1,8 @@
+# values.yaml
+config:
+  envoyGateway:
+    provider:
+      kubernetes:
+        service:
+          annotations:
+            service.beta.kubernetes.io/azure-load-balancer-internal: "true"
