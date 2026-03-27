@@ -1,0 +1,677 @@
+# azurerm_kubernetes_cluster.aks:
+resource "azurerm_kubernetes_cluster" "aks" {
+    ai_toolchain_operator_enabled       = false
+    automatic_upgrade_channel           = null
+    azure_policy_enabled                = false
+    cost_analysis_enabled               = false
+    current_kubernetes_version          = "1.33.6"
+    custom_ca_trust_certificates_base64 = []
+    disk_encryption_set_id              = null
+    dns_prefix                          = "aks-private"
+    dns_prefix_private_cluster          = null
+    edge_zone                           = null
+    fqdn                                = null
+    http_application_routing_enabled    = false
+    http_application_routing_zone_name  = null
+    id                                  = "/subscriptions/3c744587-46e1-4a41-b95f-3bca3fd5e622/resourceGroups/rg-aks-southindia/providers/Microsoft.ContainerService/managedClusters/aks-private-india"
+    kube_admin_config                   = (sensitive value)
+    kube_admin_config_raw               = (sensitive value)
+    kube_config                         = (sensitive value)
+    kube_config_raw                     = (sensitive value)
+    kubernetes_version                  = "1.33"
+    local_account_disabled              = false
+    location                            = "southindia"
+    name                                = "aks-private-india"
+    node_os_upgrade_channel             = "NodeImage"
+    node_resource_group                 = "MC_rg-aks-southindia_aks-private-india_southindia"
+    node_resource_group_id              = "/subscriptions/3c744587-46e1-4a41-b95f-3bca3fd5e622/resourceGroups/MC_rg-aks-southindia_aks-private-india_southindia"
+    oidc_issuer_enabled                 = true
+    oidc_issuer_url                     = "https://southindia.oic.prod-aks.azure.com/3241b922-8d4a-4339-9b21-5009e9c776b8/69567099-f5b2-4d6e-b635-fb3adddba920/"
+    open_service_mesh_enabled           = false
+    portal_fqdn                         = "cc570aa27869f81923ef4daddcf3ef2a-priv.portal.hcp.southindia.azmk8s.io"
+    private_cluster_enabled             = true
+    private_cluster_public_fqdn_enabled = false
+    private_dns_zone_id                 = "System"
+    private_fqdn                        = "aks-private-ptksdb4k.10324b85-7776-4014-a6a1-a8b8165f039c.privatelink.southindia.azmk8s.io"
+    resource_group_name                 = "rg-aks-southindia"
+    role_based_access_control_enabled   = true
+    run_command_enabled                 = true
+    sku_tier                            = "Free"
+    support_plan                        = "KubernetesOfficial"
+    tags                                = {}
+    workload_identity_enabled           = true
+
+    bootstrap_profile {
+        artifact_source       = "Direct"
+        container_registry_id = null
+    }
+
+    default_node_pool {
+        auto_scaling_enabled          = false
+        capacity_reservation_group_id = null
+        fips_enabled                  = false
+        gpu_driver                    = null
+        gpu_instance                  = null
+        host_encryption_enabled       = false
+        host_group_id                 = null
+        kubelet_disk_type             = "OS"
+        max_count                     = 0
+        max_pods                      = 250
+        min_count                     = 0
+        name                          = "default"
+        node_count                    = 1
+        node_labels                   = {}
+        node_public_ip_enabled        = false
+        node_public_ip_prefix_id      = null
+        only_critical_addons_enabled  = false
+        orchestrator_version          = "1.33"
+        os_disk_size_gb               = 128
+        os_disk_type                  = "Managed"
+        os_sku                        = "Ubuntu"
+        pod_subnet_id                 = null
+        proximity_placement_group_id  = null
+        scale_down_mode               = "Delete"
+        snapshot_id                   = null
+        tags                          = {}
+        temporary_name_for_rotation   = null
+        type                          = "VirtualMachineScaleSets"
+        ultra_ssd_enabled             = false
+        vm_size                       = "Standard_D2s_v3"
+        vnet_subnet_id                = "/subscriptions/3c744587-46e1-4a41-b95f-3bca3fd5e622/resourceGroups/rg-aks-southindia/providers/Microsoft.Network/virtualNetworks/vnet-aks/subnets/snet-aks"
+        workload_runtime              = null
+        zones                         = []
+
+        upgrade_settings {
+            drain_timeout_in_minutes      = 0
+            max_surge                     = "10%"
+            node_soak_duration_in_minutes = 0
+            undrainable_node_behavior     = null
+        }
+    }
+
+    identity {
+        identity_ids = []
+        principal_id = "51415ba9-469b-4371-bb97-444e262ae493"
+        tenant_id    = "3241b922-8d4a-4339-9b21-5009e9c776b8"
+        type         = "SystemAssigned"
+    }
+
+    key_vault_secrets_provider {
+        secret_identity          = [
+            {
+                client_id                 = "5116cb68-f4ba-4f61-9cf4-4f11427061fc"
+                object_id                 = "62c9736c-1dd6-4a65-9392-d8cbb8402bac"
+                user_assigned_identity_id = "/subscriptions/3c744587-46e1-4a41-b95f-3bca3fd5e622/resourcegroups/MC_rg-aks-southindia_aks-private-india_southindia/providers/Microsoft.ManagedIdentity/userAssignedIdentities/azurekeyvaultsecretsprovider-aks-private-india"
+            },
+        ]
+        secret_rotation_enabled  = false
+        secret_rotation_interval = "2m"
+    }
+
+    kubelet_identity {
+        client_id                 = "a6a3817d-6ed1-4579-9e4b-60b49fa22032"
+        object_id                 = "4a6e1934-3c64-42c9-a530-a08bc9b9b281"
+        user_assigned_identity_id = "/subscriptions/3c744587-46e1-4a41-b95f-3bca3fd5e622/resourceGroups/MC_rg-aks-southindia_aks-private-india_southindia/providers/Microsoft.ManagedIdentity/userAssignedIdentities/aks-private-india-agentpool"
+    }
+
+    network_profile {
+        dns_service_ip      = "10.0.0.10"
+        ip_versions         = [
+            "IPv4",
+        ]
+        load_balancer_sku   = "standard"
+        network_data_plane  = "azure"
+        network_mode        = null
+        network_plugin      = "azure"
+        network_plugin_mode = "overlay"
+        network_policy      = null
+        outbound_type       = "loadBalancer"
+        pod_cidr            = "10.244.0.0/16"
+        pod_cidrs           = [
+            "10.244.0.0/16",
+        ]
+        service_cidr        = "10.0.0.0/16"
+        service_cidrs       = [
+            "10.0.0.0/16",
+        ]
+
+        load_balancer_profile {
+            backend_pool_type           = "NodeIPConfiguration"
+            effective_outbound_ips      = [
+                "/subscriptions/3c744587-46e1-4a41-b95f-3bca3fd5e622/resourceGroups/MC_rg-aks-southindia_aks-private-india_southindia/providers/Microsoft.Network/publicIPAddresses/3dd7694d-4981-472a-ac37-3f8d6b09a548",
+            ]
+            idle_timeout_in_minutes     = 0
+            managed_outbound_ip_count   = 1
+            managed_outbound_ipv6_count = 0
+            outbound_ip_address_ids     = []
+            outbound_ip_prefix_ids      = []
+            outbound_ports_allocated    = 0
+        }
+    }
+
+    node_provisioning_profile {
+        default_node_pools = "Auto"
+        mode               = "Manual"
+    }
+}
+
+# azurerm_linux_virtual_machine.client_vm:
+resource "azurerm_linux_virtual_machine" "client_vm" {
+    admin_username                                         = "azureuser"
+    allow_extension_operations                             = true
+    availability_set_id                                    = null
+    bypass_platform_safety_checks_on_user_schedule_enabled = false
+    capacity_reservation_group_id                          = null
+    computer_name                                          = "client-management-vm"
+    dedicated_host_group_id                                = null
+    dedicated_host_id                                      = null
+    disable_password_authentication                        = true
+    disk_controller_type                                   = "SCSI"
+    edge_zone                                              = null
+    encryption_at_host_enabled                             = false
+    eviction_policy                                        = null
+    extensions_time_budget                                 = "PT1H30M"
+    id                                                     = "/subscriptions/3c744587-46e1-4a41-b95f-3bca3fd5e622/resourceGroups/rg-db-centralindia/providers/Microsoft.Compute/virtualMachines/client-management-vm"
+    license_type                                           = null
+    location                                               = "centralindia"
+    max_bid_price                                          = -1
+    name                                                   = "client-management-vm"
+    network_interface_ids                                  = [
+        "/subscriptions/3c744587-46e1-4a41-b95f-3bca3fd5e622/resourceGroups/rg-db-centralindia/providers/Microsoft.Network/networkInterfaces/nic-client-vm",
+    ]
+    os_managed_disk_id                                     = "/subscriptions/3c744587-46e1-4a41-b95f-3bca3fd5e622/resourceGroups/RG-DB-CENTRALINDIA/providers/Microsoft.Compute/disks/client-management-vm_OsDisk_1_08f7ce0f2e7f4e41b5173261bd8afac1"
+    patch_assessment_mode                                  = "ImageDefault"
+    patch_mode                                             = "ImageDefault"
+    platform_fault_domain                                  = -1
+    priority                                               = "Regular"
+    private_ip_address                                     = "10.2.2.4"
+    private_ip_addresses                                   = [
+        "10.2.2.4",
+    ]
+    provision_vm_agent                                     = true
+    proximity_placement_group_id                           = null
+    public_ip_address                                      = "20.204.84.248"
+    public_ip_addresses                                    = [
+        "20.204.84.248",
+    ]
+    reboot_setting                                         = null
+    resource_group_name                                    = "rg-db-centralindia"
+    secure_boot_enabled                                    = false
+    size                                                   = "Standard_D2s_v3"
+    source_image_id                                        = null
+    tags                                                   = {
+        "managedby" = "terraform"
+    }
+    user_data                                              = null
+    virtual_machine_id                                     = "b37a0d64-78b3-4965-955b-5983afc94718"
+    virtual_machine_scale_set_id                           = null
+    vm_agent_platform_updates_enabled                      = false
+    vtpm_enabled                                           = false
+    zone                                                   = null
+
+    admin_ssh_key {
+        public_key = <<-EOT
+            ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQC5SZAx8xsfEs1wdUhAm+EkwIDZlGO+41IK5BjJDzsLMVbarEAHKe7+rwuvxlj64uoML4b5fIjFYfEuIbjDI2Y4bF5NWAI765gV5l8PHDyhc0+/1/3aoEZIl8v7P+PuzFhC0d+qPiiAiECrd8rmViS8yavQzU+fQOacylJ/Qfvwufmfzj39EISsO1r/a46OIT6l+GfzCkhvBlOYezB+wwMxec1EAJZ/So/46fUG3uamYcyq83YYwd8pvWqOfoZRUgCMWjwPWjCRPjCGBgaXWXsG3WjFl8HrQd/Y3nMP7fRKWDRNLgEuUWTjKIhzHvnwMo5ASSm6G9AgoFRBMTxwdPXsLFNqBaWg7c5mmbufU5BtoTqJ9DPlbtHGOWBxTfak8acJrnVHU05dByi4BVNatxWf+EUQLtCIjZt/KnyLyxongIwSXsF3yZeFquXxtT0USFhx4ljliUcPU+ljhyVaDnAQWLaCNAcOIkuZqpwDSXn5jJFqI4+4EOO+2rE3xAGvacbSvjolreskhXWQwsuaERBHOrCMWnX9VuIgwy+kwk5MFAO9O38sXregnFRUpwIOZHOT6sT/uIG3k0+9KCDv3wvlr/5wF+XxuQNE+0qXS1cdXKKoi9y/1EMOfvIheZefIUUat86z7fyd4ZFoH7duCVcENWkmCzj0/CfWqHKXok4C9w== anuroop p s@ANU
+        EOT
+        username   = "azureuser"
+    }
+
+    os_disk {
+        caching                          = "ReadWrite"
+        disk_encryption_set_id           = null
+        disk_size_gb                     = 30
+        id                               = "/subscriptions/3c744587-46e1-4a41-b95f-3bca3fd5e622/resourceGroups/RG-DB-CENTRALINDIA/providers/Microsoft.Compute/disks/client-management-vm_OsDisk_1_08f7ce0f2e7f4e41b5173261bd8afac1"
+        name                             = "client-management-vm_OsDisk_1_08f7ce0f2e7f4e41b5173261bd8afac1"
+        secure_vm_disk_encryption_set_id = null
+        security_encryption_type         = null
+        storage_account_type             = "Standard_LRS"
+        write_accelerator_enabled        = false
+    }
+
+    source_image_reference {
+        offer     = "ubuntu-24_04-lts"
+        publisher = "canonical"
+        sku       = "server"
+        version   = "latest"
+    }
+}
+
+# azurerm_network_interface.client_nic:
+resource "azurerm_network_interface" "client_nic" {
+    accelerated_networking_enabled = false
+    applied_dns_servers            = []
+    auxiliary_mode                 = null
+    auxiliary_sku                  = null
+    dns_servers                    = []
+    edge_zone                      = null
+    id                             = "/subscriptions/3c744587-46e1-4a41-b95f-3bca3fd5e622/resourceGroups/rg-db-centralindia/providers/Microsoft.Network/networkInterfaces/nic-client-vm"
+    internal_dns_name_label        = null
+    internal_domain_name_suffix    = "ttpnffpmaz3uhbce2434pqv3rd.rx.internal.cloudapp.net"
+    ip_forwarding_enabled          = false
+    location                       = "centralindia"
+    mac_address                    = "70-A8-A5-67-81-FD"
+    name                           = "nic-client-vm"
+    private_ip_address             = "10.2.2.4"
+    private_ip_addresses           = [
+        "10.2.2.4",
+    ]
+    resource_group_name            = "rg-db-centralindia"
+    tags                           = {}
+    virtual_machine_id             = "/subscriptions/3c744587-46e1-4a41-b95f-3bca3fd5e622/resourceGroups/rg-db-centralindia/providers/Microsoft.Compute/virtualMachines/client-management-vm"
+
+    ip_configuration {
+        gateway_load_balancer_frontend_ip_configuration_id = null
+        name                                               = "internal"
+        primary                                            = true
+        private_ip_address                                 = "10.2.2.4"
+        private_ip_address_allocation                      = "Dynamic"
+        private_ip_address_version                         = "IPv4"
+        public_ip_address_id                               = "/subscriptions/3c744587-46e1-4a41-b95f-3bca3fd5e622/resourceGroups/rg-db-centralindia/providers/Microsoft.Network/publicIPAddresses/pip-client-vm"
+        subnet_id                                          = "/subscriptions/3c744587-46e1-4a41-b95f-3bca3fd5e622/resourceGroups/rg-db-centralindia/providers/Microsoft.Network/virtualNetworks/vnet-db/subnets/snet-client"
+    }
+}
+
+# azurerm_network_security_group.client_nsg:
+resource "azurerm_network_security_group" "client_nsg" {
+    id                  = "/subscriptions/3c744587-46e1-4a41-b95f-3bca3fd5e622/resourceGroups/rg-db-centralindia/providers/Microsoft.Network/networkSecurityGroups/nsg-client-management"
+    location            = "centralindia"
+    name                = "nsg-client-management"
+    resource_group_name = "rg-db-centralindia"
+    security_rule       = [
+        {
+            access                                     = "Allow"
+            description                                = null
+            destination_address_prefix                 = "*"
+            destination_address_prefixes               = []
+            destination_application_security_group_ids = []
+            destination_port_range                     = null
+            destination_port_ranges                    = [
+                "3000",
+                "9090",
+            ]
+            direction                                  = "Inbound"
+            name                                       = "grafana"
+            priority                                   = 110
+            protocol                                   = "*"
+            source_address_prefix                      = "122.168.68.85"
+            source_address_prefixes                    = []
+            source_application_security_group_ids      = []
+            source_port_range                          = "*"
+            source_port_ranges                         = []
+        },
+        {
+            access                                     = "Allow"
+            description                                = null
+            destination_address_prefix                 = "*"
+            destination_address_prefixes               = []
+            destination_application_security_group_ids = []
+            destination_port_range                     = "22"
+            destination_port_ranges                    = []
+            direction                                  = "Inbound"
+            name                                       = "SSH"
+            priority                                   = 100
+            protocol                                   = "Tcp"
+            source_address_prefix                      = "*"
+            source_address_prefixes                    = []
+            source_application_security_group_ids      = []
+            source_port_range                          = "*"
+            source_port_ranges                         = []
+        },
+        {
+            access                                     = "Allow"
+            description                                = null
+            destination_address_prefix                 = "*"
+            destination_address_prefixes               = []
+            destination_application_security_group_ids = []
+            destination_port_range                     = "8080"
+            destination_port_ranges                    = []
+            direction                                  = "Inbound"
+            name                                       = "go-app"
+            priority                                   = 120
+            protocol                                   = "*"
+            source_address_prefix                      = "122.168.68.85"
+            source_address_prefixes                    = []
+            source_application_security_group_ids      = []
+            source_port_range                          = "*"
+            source_port_ranges                         = []
+        },
+    ]
+    tags                = {}
+}
+
+# azurerm_network_security_group.db_nsg:
+resource "azurerm_network_security_group" "db_nsg" {
+    id                  = "/subscriptions/3c744587-46e1-4a41-b95f-3bca3fd5e622/resourceGroups/rg-db-centralindia/providers/Microsoft.Network/networkSecurityGroups/nsg-postgres"
+    location            = "centralindia"
+    name                = "nsg-postgres"
+    resource_group_name = "rg-db-centralindia"
+    security_rule       = [
+        {
+            access                                     = "Allow"
+            description                                = null
+            destination_address_prefix                 = "*"
+            destination_address_prefixes               = []
+            destination_application_security_group_ids = []
+            destination_port_range                     = "5432"
+            destination_port_ranges                    = []
+            direction                                  = "Inbound"
+            name                                       = "AllowAKSTraffic"
+            priority                                   = 100
+            protocol                                   = "Tcp"
+            source_address_prefix                      = "10.1.1.0/24"
+            source_address_prefixes                    = []
+            source_application_security_group_ids      = []
+            source_port_range                          = "*"
+            source_port_ranges                         = []
+        },
+    ]
+    tags                = {}
+}
+
+# azurerm_private_dns_zone.postgres_dns:
+resource "azurerm_private_dns_zone" "postgres_dns" {
+    id                                                    = "/subscriptions/3c744587-46e1-4a41-b95f-3bca3fd5e622/resourceGroups/rg-db-centralindia/providers/Microsoft.Network/privateDnsZones/private.postgres.database.azure.com"
+    max_number_of_record_sets                             = 25000
+    max_number_of_virtual_network_links                   = 1000
+    max_number_of_virtual_network_links_with_registration = 100
+    name                                                  = "private.postgres.database.azure.com"
+    number_of_record_sets                                 = 2
+    resource_group_name                                   = "rg-db-centralindia"
+    tags                                                  = {}
+
+    soa_record {
+        email         = "azureprivatedns-host.microsoft.com"
+        expire_time   = 2419200
+        fqdn          = "private.postgres.database.azure.com."
+        host_name     = "azureprivatedns.net"
+        minimum_ttl   = 10
+        refresh_time  = 3600
+        retry_time    = 300
+        serial_number = 1
+        tags          = {}
+        ttl           = 3600
+    }
+}
+
+# azurerm_private_dns_zone_virtual_network_link.dns_link_central:
+resource "azurerm_private_dns_zone_virtual_network_link" "dns_link_central" {
+    id                    = "/subscriptions/3c744587-46e1-4a41-b95f-3bca3fd5e622/resourceGroups/rg-db-centralindia/providers/Microsoft.Network/privateDnsZones/private.postgres.database.azure.com/virtualNetworkLinks/central-vnet-link"
+    name                  = "central-vnet-link"
+    private_dns_zone_name = "private.postgres.database.azure.com"
+    registration_enabled  = false
+    resolution_policy     = null
+    resource_group_name   = "rg-db-centralindia"
+    tags                  = {}
+    virtual_network_id    = "/subscriptions/3c744587-46e1-4a41-b95f-3bca3fd5e622/resourceGroups/rg-db-centralindia/providers/Microsoft.Network/virtualNetworks/vnet-db"
+}
+
+# azurerm_private_dns_zone_virtual_network_link.dns_link_south:
+resource "azurerm_private_dns_zone_virtual_network_link" "dns_link_south" {
+    id                    = "/subscriptions/3c744587-46e1-4a41-b95f-3bca3fd5e622/resourceGroups/rg-db-centralindia/providers/Microsoft.Network/privateDnsZones/private.postgres.database.azure.com/virtualNetworkLinks/south-vnet-link"
+    name                  = "south-vnet-link"
+    private_dns_zone_name = "private.postgres.database.azure.com"
+    registration_enabled  = false
+    resolution_policy     = null
+    resource_group_name   = "rg-db-centralindia"
+    tags                  = {}
+    virtual_network_id    = "/subscriptions/3c744587-46e1-4a41-b95f-3bca3fd5e622/resourceGroups/rg-aks-southindia/providers/Microsoft.Network/virtualNetworks/vnet-aks"
+}
+
+# azurerm_public_ip.client_ip:
+resource "azurerm_public_ip" "client_ip" {
+    allocation_method       = "Static"
+    ddos_protection_mode    = "VirtualNetworkInherited"
+    edge_zone               = null
+    id                      = "/subscriptions/3c744587-46e1-4a41-b95f-3bca3fd5e622/resourceGroups/rg-db-centralindia/providers/Microsoft.Network/publicIPAddresses/pip-client-vm"
+    idle_timeout_in_minutes = 4
+    ip_address              = "20.204.84.248"
+    ip_tags                 = {}
+    ip_version              = "IPv4"
+    location                = "centralindia"
+    name                    = "pip-client-vm"
+    resource_group_name     = "rg-db-centralindia"
+    sku                     = "Standard"
+    sku_tier                = "Regional"
+    tags                    = {}
+    zones                   = []
+}
+
+# azurerm_resource_group.rg_central:
+resource "azurerm_resource_group" "rg_central" {
+    id         = "/subscriptions/3c744587-46e1-4a41-b95f-3bca3fd5e622/resourceGroups/rg-db-centralindia"
+    location   = "centralindia"
+    managed_by = null
+    name       = "rg-db-centralindia"
+    tags       = {}
+}
+
+# azurerm_resource_group.rg_south:
+resource "azurerm_resource_group" "rg_south" {
+    id         = "/subscriptions/3c744587-46e1-4a41-b95f-3bca3fd5e622/resourceGroups/rg-aks-southindia"
+    location   = "southindia"
+    managed_by = null
+    name       = "rg-aks-southindia"
+    tags       = {}
+}
+
+# azurerm_subnet.aks_subnet:
+resource "azurerm_subnet" "aks_subnet" {
+    address_prefixes                              = [
+        "10.1.1.0/24",
+    ]
+    default_outbound_access_enabled               = true
+    id                                            = "/subscriptions/3c744587-46e1-4a41-b95f-3bca3fd5e622/resourceGroups/rg-aks-southindia/providers/Microsoft.Network/virtualNetworks/vnet-aks/subnets/snet-aks"
+    name                                          = "snet-aks"
+    private_endpoint_network_policies             = "Disabled"
+    private_link_service_network_policies_enabled = true
+    resource_group_name                           = "rg-aks-southindia"
+    service_endpoint_policy_ids                   = []
+    service_endpoints                             = []
+    sharing_scope                                 = null
+    virtual_network_name                          = "vnet-aks"
+}
+
+# azurerm_subnet.client_subnet:
+resource "azurerm_subnet" "client_subnet" {
+    address_prefixes                              = [
+        "10.2.2.0/24",
+    ]
+    default_outbound_access_enabled               = true
+    id                                            = "/subscriptions/3c744587-46e1-4a41-b95f-3bca3fd5e622/resourceGroups/rg-db-centralindia/providers/Microsoft.Network/virtualNetworks/vnet-db/subnets/snet-client"
+    name                                          = "snet-client"
+    private_endpoint_network_policies             = "Disabled"
+    private_link_service_network_policies_enabled = true
+    resource_group_name                           = "rg-db-centralindia"
+    service_endpoint_policy_ids                   = []
+    service_endpoints                             = []
+    sharing_scope                                 = null
+    virtual_network_name                          = "vnet-db"
+}
+
+# azurerm_subnet.db_subnet:
+resource "azurerm_subnet" "db_subnet" {
+    address_prefixes                              = [
+        "10.2.1.0/24",
+    ]
+    default_outbound_access_enabled               = true
+    id                                            = "/subscriptions/3c744587-46e1-4a41-b95f-3bca3fd5e622/resourceGroups/rg-db-centralindia/providers/Microsoft.Network/virtualNetworks/vnet-db/subnets/snet-db-flex"
+    name                                          = "snet-db-flex"
+    private_endpoint_network_policies             = "Disabled"
+    private_link_service_network_policies_enabled = true
+    resource_group_name                           = "rg-db-centralindia"
+    service_endpoint_policy_ids                   = []
+    service_endpoints                             = []
+    sharing_scope                                 = null
+    virtual_network_name                          = "vnet-db"
+
+    delegation {
+        name = "fs-delegation"
+
+        service_delegation {
+            actions = [
+                "Microsoft.Network/virtualNetworks/subnets/join/action",
+            ]
+            name    = "Microsoft.DBforPostgreSQL/flexibleServers"
+        }
+    }
+}
+
+# azurerm_subnet_network_security_group_association.clientvm_assoc:
+resource "azurerm_subnet_network_security_group_association" "clientvm_assoc" {
+    id                        = "/subscriptions/3c744587-46e1-4a41-b95f-3bca3fd5e622/resourceGroups/rg-db-centralindia/providers/Microsoft.Network/virtualNetworks/vnet-db/subnets/snet-client"
+    network_security_group_id = "/subscriptions/3c744587-46e1-4a41-b95f-3bca3fd5e622/resourceGroups/rg-db-centralindia/providers/Microsoft.Network/networkSecurityGroups/nsg-client-management"
+    subnet_id                 = "/subscriptions/3c744587-46e1-4a41-b95f-3bca3fd5e622/resourceGroups/rg-db-centralindia/providers/Microsoft.Network/virtualNetworks/vnet-db/subnets/snet-client"
+}
+
+# azurerm_subnet_network_security_group_association.db_assoc:
+resource "azurerm_subnet_network_security_group_association" "db_assoc" {
+    id                        = "/subscriptions/3c744587-46e1-4a41-b95f-3bca3fd5e622/resourceGroups/rg-db-centralindia/providers/Microsoft.Network/virtualNetworks/vnet-db/subnets/snet-db-flex"
+    network_security_group_id = "/subscriptions/3c744587-46e1-4a41-b95f-3bca3fd5e622/resourceGroups/rg-db-centralindia/providers/Microsoft.Network/networkSecurityGroups/nsg-postgres"
+    subnet_id                 = "/subscriptions/3c744587-46e1-4a41-b95f-3bca3fd5e622/resourceGroups/rg-db-centralindia/providers/Microsoft.Network/virtualNetworks/vnet-db/subnets/snet-db-flex"
+}
+
+# azurerm_virtual_network.vnet_central:
+resource "azurerm_virtual_network" "vnet_central" {
+    address_space                  = [
+        "10.2.0.0/16",
+    ]
+    bgp_community                  = null
+    dns_servers                    = []
+    edge_zone                      = null
+    flow_timeout_in_minutes        = 0
+    guid                           = "95d2de9c-06ec-437b-8444-e7bbe7c2bd8b"
+    id                             = "/subscriptions/3c744587-46e1-4a41-b95f-3bca3fd5e622/resourceGroups/rg-db-centralindia/providers/Microsoft.Network/virtualNetworks/vnet-db"
+    location                       = "centralindia"
+    name                           = "vnet-db"
+    private_endpoint_vnet_policies = "Disabled"
+    resource_group_name            = "rg-db-centralindia"
+    subnet                         = [
+        {
+            address_prefixes                              = [
+                "10.2.1.0/24",
+            ]
+            default_outbound_access_enabled               = true
+            delegation                                    = [
+                {
+                    name               = "fs-delegation"
+                    service_delegation = [
+                        {
+                            actions = [
+                                "Microsoft.Network/virtualNetworks/subnets/join/action",
+                            ]
+                            name    = "Microsoft.DBforPostgreSQL/flexibleServers"
+                        },
+                    ]
+                },
+            ]
+            id                                            = "/subscriptions/3c744587-46e1-4a41-b95f-3bca3fd5e622/resourceGroups/rg-db-centralindia/providers/Microsoft.Network/virtualNetworks/vnet-db/subnets/snet-db-flex"
+            name                                          = "snet-db-flex"
+            private_endpoint_network_policies             = "Disabled"
+            private_link_service_network_policies_enabled = true
+            route_table_id                                = null
+            security_group                                = "/subscriptions/3c744587-46e1-4a41-b95f-3bca3fd5e622/resourceGroups/rg-db-centralindia/providers/Microsoft.Network/networkSecurityGroups/nsg-postgres"
+            service_endpoint_policy_ids                   = []
+            service_endpoints                             = []
+        },
+        {
+            address_prefixes                              = [
+                "10.2.2.0/24",
+            ]
+            default_outbound_access_enabled               = true
+            delegation                                    = []
+            id                                            = "/subscriptions/3c744587-46e1-4a41-b95f-3bca3fd5e622/resourceGroups/rg-db-centralindia/providers/Microsoft.Network/virtualNetworks/vnet-db/subnets/snet-client"
+            name                                          = "snet-client"
+            private_endpoint_network_policies             = "Disabled"
+            private_link_service_network_policies_enabled = true
+            route_table_id                                = null
+            security_group                                = "/subscriptions/3c744587-46e1-4a41-b95f-3bca3fd5e622/resourceGroups/rg-db-centralindia/providers/Microsoft.Network/networkSecurityGroups/nsg-client-management"
+            service_endpoint_policy_ids                   = []
+            service_endpoints                             = []
+        },
+    ]
+    tags                           = {}
+}
+
+# azurerm_virtual_network.vnet_south:
+resource "azurerm_virtual_network" "vnet_south" {
+    address_space                  = [
+        "10.1.0.0/16",
+    ]
+    bgp_community                  = null
+    dns_servers                    = []
+    edge_zone                      = null
+    flow_timeout_in_minutes        = 0
+    guid                           = "0606164f-4d4e-4152-be7c-ba911c637d80"
+    id                             = "/subscriptions/3c744587-46e1-4a41-b95f-3bca3fd5e622/resourceGroups/rg-aks-southindia/providers/Microsoft.Network/virtualNetworks/vnet-aks"
+    location                       = "southindia"
+    name                           = "vnet-aks"
+    private_endpoint_vnet_policies = "Disabled"
+    resource_group_name            = "rg-aks-southindia"
+    subnet                         = [
+        {
+            address_prefixes                              = [
+                "10.1.1.0/24",
+            ]
+            default_outbound_access_enabled               = true
+            delegation                                    = []
+            id                                            = "/subscriptions/3c744587-46e1-4a41-b95f-3bca3fd5e622/resourceGroups/rg-aks-southindia/providers/Microsoft.Network/virtualNetworks/vnet-aks/subnets/snet-aks"
+            name                                          = "snet-aks"
+            private_endpoint_network_policies             = "Disabled"
+            private_link_service_network_policies_enabled = true
+            route_table_id                                = null
+            security_group                                = "/subscriptions/3c744587-46e1-4a41-b95f-3bca3fd5e622/resourceGroups/mc_rg-aks-southindia_aks-private-india_southindia/providers/Microsoft.Network/networkSecurityGroups/aks-agentpool-42271843-nsg"
+            service_endpoint_policy_ids                   = []
+            service_endpoints                             = []
+        },
+        {
+            address_prefixes                              = [
+                "10.1.255.0/27",
+            ]
+            default_outbound_access_enabled               = false
+            delegation                                    = []
+            id                                            = "/subscriptions/3c744587-46e1-4a41-b95f-3bca3fd5e622/resourceGroups/rg-aks-southindia/providers/Microsoft.Network/virtualNetworks/vnet-aks/subnets/GatewaySubnet"
+            name                                          = "GatewaySubnet"
+            private_endpoint_network_policies             = "Disabled"
+            private_link_service_network_policies_enabled = true
+            route_table_id                                = null
+            security_group                                = null
+            service_endpoint_policy_ids                   = []
+            service_endpoints                             = []
+        },
+    ]
+    tags                           = {}
+}
+
+# azurerm_virtual_network_peering.central_to_south:
+resource "azurerm_virtual_network_peering" "central_to_south" {
+    allow_forwarded_traffic                = true
+    allow_gateway_transit                  = false
+    allow_virtual_network_access           = true
+    id                                     = "/subscriptions/3c744587-46e1-4a41-b95f-3bca3fd5e622/resourceGroups/rg-db-centralindia/providers/Microsoft.Network/virtualNetworks/vnet-db/virtualNetworkPeerings/peer-central-to-south"
+    local_subnet_names                     = []
+    name                                   = "peer-central-to-south"
+    only_ipv6_peering_enabled              = false
+    peer_complete_virtual_networks_enabled = true
+    remote_subnet_names                    = []
+    remote_virtual_network_id              = "/subscriptions/3c744587-46e1-4a41-b95f-3bca3fd5e622/resourceGroups/rg-aks-southindia/providers/Microsoft.Network/virtualNetworks/vnet-aks"
+    resource_group_name                    = "rg-db-centralindia"
+    use_remote_gateways                    = false
+    virtual_network_name                   = "vnet-db"
+}
+
+# azurerm_virtual_network_peering.south_to_central:
+resource "azurerm_virtual_network_peering" "south_to_central" {
+    allow_forwarded_traffic                = true
+    allow_gateway_transit                  = false
+    allow_virtual_network_access           = true
+    id                                     = "/subscriptions/3c744587-46e1-4a41-b95f-3bca3fd5e622/resourceGroups/rg-aks-southindia/providers/Microsoft.Network/virtualNetworks/vnet-aks/virtualNetworkPeerings/peer-south-to-central"
+    local_subnet_names                     = []
+    name                                   = "peer-south-to-central"
+    only_ipv6_peering_enabled              = false
+    peer_complete_virtual_networks_enabled = true
+    remote_subnet_names                    = []
+    remote_virtual_network_id              = "/subscriptions/3c744587-46e1-4a41-b95f-3bca3fd5e622/resourceGroups/rg-db-centralindia/providers/Microsoft.Network/virtualNetworks/vnet-db"
+    resource_group_name                    = "rg-aks-southindia"
+    use_remote_gateways                    = false
+    virtual_network_name                   = "vnet-aks"
+}

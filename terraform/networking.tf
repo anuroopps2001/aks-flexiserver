@@ -12,6 +12,19 @@ resource "azurerm_subnet" "aks_subnet" {
   resource_group_name  = azurerm_resource_group.rg_south.name
   virtual_network_name = azurerm_virtual_network.vnet_south.name
   address_prefixes     = ["10.1.1.0/24"]
+
+// By using ignore_changes, you're telling Terraform: "I know there's an NSG there, but just leave it alone."
+  lifecycle {
+    ignore_changes = [private_endpoint_network_policies, service_endpoints]
+  }
+}
+
+# For site-2-site VPN between Azure and GCP
+resource "azurerm_subnet" "gateway_subnet" {
+  name                 = "GatewaySubnet"
+  resource_group_name  = azurerm_resource_group.rg_south.name
+  virtual_network_name = azurerm_virtual_network.vnet_south.name
+  address_prefixes     = ["10.1.255.0/27"]
 }
 
 # VNet Central India
@@ -103,6 +116,13 @@ resource "azurerm_postgresql_flexible_server" "db" {
   administrator_password = "SecurePassword123!" # Use a Secret Manager in Prod
   storage_mb             = 32768
   sku_name               = "GP_Standard_D2s_v3"
+
+  # Recommended: Add this to prevent accidental password resets during future plans
+  lifecycle {
+    ignore_changes = [ 
+      administrator_password
+     ]
+  }
 }
 
 
