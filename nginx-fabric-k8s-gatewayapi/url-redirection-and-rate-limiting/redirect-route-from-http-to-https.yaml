@@ -1,0 +1,20 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: http-to-https-redirect
+spec:
+  parentRefs:
+  - name: nginx-gateway
+    sectionName: http   # Apply this ONLY to port 80 and Do NOT affect HTTPS traffic in gateway YAML
+  hostnames:
+    - "app1.local"
+  rules:
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /
+    filters:
+    - type: RequestRedirect
+      requestRedirect:
+        scheme: https
+        statusCode: 301
