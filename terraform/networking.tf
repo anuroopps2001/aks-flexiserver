@@ -13,7 +13,7 @@ resource "azurerm_subnet" "aks_subnet" {
   virtual_network_name = azurerm_virtual_network.vnet_south.name
   address_prefixes     = ["10.1.1.0/24"]
 
-// By using ignore_changes, you're telling Terraform: "I know there's an NSG there, but just leave it alone."
+  // By using ignore_changes, you're telling Terraform: "I know there's an NSG there, but just leave it alone."
   lifecycle {
     ignore_changes = [private_endpoint_network_policies, service_endpoints]
   }
@@ -108,7 +108,7 @@ resource "azurerm_postgresql_flexible_server" "db" {
   version             = "13"
   delegated_subnet_id = azurerm_subnet.db_subnet.id
   private_dns_zone_id = azurerm_private_dns_zone.postgres_dns.id
-  zone = "1"
+  zone                = "1"
 
   public_network_access_enabled = false
 
@@ -119,9 +119,9 @@ resource "azurerm_postgresql_flexible_server" "db" {
 
   # Recommended: Add this to prevent accidental password resets during future plans
   lifecycle {
-    ignore_changes = [ 
+    ignore_changes = [
       administrator_password
-     ]
+    ]
   }
 }
 
