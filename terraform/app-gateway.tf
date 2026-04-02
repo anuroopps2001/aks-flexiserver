@@ -126,13 +126,13 @@ resource "azurerm_application_gateway" "appgw" {
   probe {
     name                = local.probe_name
     protocol            = "Http"
-    path                = "/"
+    path                = "/users"  # httproute for go-db app listens on this specific path
     interval            = 30
     timeout             = 30
     unhealthy_threshold = 3
     # Just like we hit node_ip:nodePort, appgateway also, needs to get and get the response
     # if used curl -I http://node_ip:nodePort , we will get 404 and to avoid this hitting actual application
-    host = "app1.local" # domain name of my application
+    host = "go.app.version.split.local" # domain name of my application
 
 
     match {
