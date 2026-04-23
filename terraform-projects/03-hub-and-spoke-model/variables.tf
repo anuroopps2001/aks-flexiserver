@@ -17,6 +17,14 @@ variable "hub_config" {
   })
 }
 
+variable "hub_subnets" {
+  type = map(object({
+    address_prefixes   = list(string)
+    service_delegation = optional(string)
+    service_endpoints  = optional(list(string))
+  }))
+}
+
 variable "spoke_vnets" {
   type = map(object({
     address_space = list(string)

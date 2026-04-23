@@ -43,25 +43,6 @@ resource "azurerm_virtual_network_peering" "hub_to_spoke" {
   remote_virtual_network_id = azurerm_virtual_network.spokes[each.key].id
 }
 
-resource "azurerm_virtual_network_peering" "aks-to-agent" {
-  name                      = "peer-aks-to-aget"
-  resource_group_name       = azurerm_resource_group.rgs["rg-spoke-workloads"].name
-  virtual_network_name      = azurerm_virtual_network.spokes["aks"].name
-  remote_virtual_network_id = azurerm_virtual_network.spokes["client-and-agent"].id
-
-  allow_virtual_network_access = true
-  allow_forwarded_traffic      = true
-}
-
-resource "azurerm_virtual_network_peering" "agent-to-aks" {
-  name                      = "peer-agent-to-aks"
-  resource_group_name       = azurerm_resource_group.rgs["rg-spoke-workloads"].name
-  virtual_network_name      = azurerm_virtual_network.spokes["client-and-agent"].name
-  remote_virtual_network_id = azurerm_virtual_network.spokes["aks"].id
-
-  allow_virtual_network_access = true
-  allow_forwarded_traffic      = true
-}
 
 resource "azurerm_virtual_network_peering" "aks-to-postgres" {
   name                      = "peer-aks-to-postgres-flexi-server"
@@ -94,30 +75,48 @@ resource "azurerm_subnet" "spoke_subnets" {
   service_endpoints = each.value.service_endpoints
 
   # Dynamic block for Subnet Delegation (required for Postgres Flexible Server
+  # dynamic "delegation" {
+  #   for_each = each.value.delegation == "postgres" ? [1] : []
+  #   content {
+  #     name = "delegation"
+  #     service_delegation {
+  #       name    = "Microsoft.DBforPostgreSQL/flexibleServers"
+  #       actions = ["Microsoft.Network/virtualNetworks/subnets/join/action"]
+  #     }
+  #   }
+  # }
+}
+
+# New resource for the Hub's internal subnets (like App Gateway)
+resource "azurerm_subnet" "hub_subnets" {
+  for_each             = var.hub_subnets
+  name                 = each.key
+  resource_group_name  = azurerm_resource_group.rgs[var.hub_config.rg].name
+  virtual_network_name = azurerm_virtual_network.hub.name
+  address_prefixes     = each.value.address_prefixes
+  service_endpoints    = each.value.service_endpoints
+
+
   dynamic "delegation" {
-    for_each = each.value.delegation == "postgres" ? [1] : []
+    # Only create this block if service_delegation is not null
+    for_each = each.value.service_delegation != null ? [1] : []
+
     content {
       name = "delegation"
       service_delegation {
-        name    = "Microsoft.DBforPostgreSQL/flexibleServers"
-        actions = ["Microsoft.Network/virtualNetworks/subnets/join/action"]
+        name    = each.value.service_delegation
+        actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
       }
     }
   }
 }
 
-# New resource for the Hub's internal subnets (like App Gateway)
-resource "azurerm_subnet" "hub_subnets" {
-  name                 = "snet-appgw"
-  resource_group_name  = azurerm_resource_group.rgs[var.hub_config.rg].name
-  virtual_network_name = azurerm_virtual_network.hub.name
-  address_prefixes     = ["10.0.1.0/24"]
+moved {
+  from = azurerm_subnet.hub_subnets
+  to   = azurerm_subnet.hub_subnets["snet-appgw"]
 }
 
-
-resource "azurerm_subnet" "hub_subnet_for_appgw" {
-  name                 = "snet-agw_new"
-  resource_group_name  = azurerm_resource_group.rgs[var.hub_config.rg].name
-  virtual_network_name = azurerm_virtual_network.hub.name
-  address_prefixes     = ["10.0.2.0/24"]
+moved {
+  from = azurerm_subnet.hub_subnet_for_appgw
+  to   = azurerm_subnet.hub_subnets["snet-agw_new"]
 }

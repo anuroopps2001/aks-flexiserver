@@ -26,13 +26,15 @@ resource "azurerm_private_endpoint" "storage_pe" {
   name                = "pe-hub-storage-account"
   location            = var.location
   resource_group_name = azurerm_resource_group.rgs["rg-hub-networking"].name
-  subnet_id           = azurerm_subnet.hub_subnets.id
+  subnet_id           = azurerm_subnet.hub_subnets["snet-appgw"].id
 
 
 
   private_dns_zone_group {
-    name                 = "storage-dns-group"
-    private_dns_zone_ids = [azurerm_private_dns_zone.storage_account_dns_zone.id]
+    name = "storage-dns-group"
+    private_dns_zone_ids = [azurerm_private_dns_zone.storage_account_dns_zone.id,
+
+    ]
   }
 
 

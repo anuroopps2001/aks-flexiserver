@@ -29,11 +29,11 @@ resource "azurerm_role_assignment" "aks_dns_contributor" {
   depends_on = [azurerm_private_dns_zone.aks_dns_zone]
 }
 
-resource "azurerm_role_assignment" "acr_pull" {
-  scope                = azurerm_container_registry.acr.id # on which resource, role is assigned
-  role_definition_name = "AcrPull"
-  principal_id         = azurerm_user_assigned_identity.agent_identity.principal_id # To whom, permissions are give
-}
+# resource "azurerm_role_assignment" "acr_pull" {
+#   scope                = azurerm_container_registry.acr.id # on which resource, role is assigned
+#   role_definition_name = "AcrPull"
+#   principal_id         = azurerm_user_assigned_identity.agent_identity.principal_id # To whom, permissions are give
+# }
 
 resource "azurerm_kubernetes_cluster" "private_aks" {
   name                = "aks-private-cluster"
@@ -48,12 +48,27 @@ resource "azurerm_kubernetes_cluster" "private_aks" {
   private_dns_zone_id       = azurerm_private_dns_zone.aks_dns_zone.id # custom dns zone instead of using AKS Automatically created
   oidc_issuer_enabled       = true
   workload_identity_enabled = true
+
   default_node_pool {
     name           = "systempool"
-    node_count     = 1
     vm_size        = "Standard_B2as_v2"
     vnet_subnet_id = azurerm_subnet.spoke_subnets["snet-aks"].id
 
+
+
+    # Azure creates a new pool named tempnodepool.
+    # Azure migrates your system pods to the temporary pool.
+    # Azure deletes your old systempool nodes.
+    # Azure recreates the systempool with your new settings (the taint).
+    # Azure moves the pods back and deletes the temporary pool.
+
+
+    # temporary_name_for_rotation = "tempnodepool"
+    # only_critical_addons_enabled = true # It will taint the nodes
+    # auto_scaling_enabled         = true
+    # min_count                    = 1
+    # max_count                    = 2
+    # node_count                   = 1 # This becomes the 'starting' count
 
     upgrade_settings {
       drain_timeout_in_minutes      = 0
@@ -79,6 +94,7 @@ resource "azurerm_kubernetes_cluster" "private_aks" {
     load_balancer_sku = "standard"
   }
 
+
   # For using secrets stored inside keyVault through the federated identities of managed identities
   key_vault_secrets_provider {
     secret_rotation_enabled  = true # Optional: Automatically syncs KV changes to K8s
@@ -90,10 +106,30 @@ resource "azurerm_kubernetes_cluster" "private_aks" {
 
   depends_on = [
     azurerm_role_assignment.aks_dns_contributor, # Wait for the permission!
-    azurerm_role_assignment.acr_pull             # Wait for ACR access too
+    # azurerm_role_assignment.acr_pull             # Wait for ACR access too
   ]
 }
 
+
+# dedicated user workload related pool
+# resource "azurerm_kubernetes_cluster_node_pool" "user_pool" {
+#   name                  = "workloadpool"
+#   kubernetes_cluster_id = azurerm_kubernetes_cluster.private_aks.id
+#   vm_size               = "Standard_B2as_v2"
+#   vnet_subnet_id        = azurerm_subnet.spoke_subnets["snet-aks"].id
+
+
+#   auto_scaling_enabled = true
+#   node_count           = 1
+#   min_count            = 1
+#   max_count            = 2
+
+#   node_taints = ["workload=production:NoSchedule"]
+
+#   node_labels = {
+#     "role" = "user-workloads"
+#   }
+# }
 
 resource "azurerm_role_assignment" "aks_network_contributor" {
   scope                = azurerm_subnet.spoke_subnets["snet-aks"].id

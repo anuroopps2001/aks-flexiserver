@@ -1,6 +1,6 @@
 # Create a Private DNS Zone for Postgres
 resource "azurerm_private_dns_zone" "postgres_dns" {
-  name                = "anuroop.postgres.database.azure.com"
+  name                = "privatelink.postgres.database.azure.com"
   resource_group_name = azurerm_resource_group.rgs["rg-spoke-workloads"].name
 }
 
@@ -27,8 +27,6 @@ resource "azurerm_postgresql_flexible_server" "db" {
   resource_group_name = azurerm_resource_group.rgs["rg-spoke-workloads"].name
   location            = var.location
   version             = "14"
-  delegated_subnet_id = azurerm_subnet.spoke_subnets["snet-db"].id
-  private_dns_zone_id = azurerm_private_dns_zone.postgres_dns.id # Deny public access
 
   administrator_login    = "psqladmin"
   administrator_password = var.default_secrets["DB-PASSWORD"] # Keyvault
@@ -71,3 +69,21 @@ resource "azurerm_user_assigned_identity" "aks_db_access_identity" {
   location            = var.location
 }
 
+resource "azurerm_private_endpoint" "postgres_pe" {
+  name                = "pe-postgres-db"
+  location            = var.location
+  resource_group_name = azurerm_resource_group.rgs["rg-spoke-workloads"].name
+  subnet_id           = azurerm_subnet.spoke_subnets["snet-db"].id # no delegation for DB servers only
+
+  private_service_connection {
+    name                           = "psc-postgres"
+    private_connection_resource_id = azurerm_postgresql_flexible_server.db.id
+    subresource_names              = ["postgresqlServer"]
+    is_manual_connection           = false
+  }
+
+  private_dns_zone_group {
+    name                 = "dns-group-postgres"
+    private_dns_zone_ids = [azurerm_private_dns_zone.postgres_dns.id]
+  }
+}

@@ -18,6 +18,8 @@ terraform {
 provider "azurerm" {
   # Configuration options
   features {}
+
+  storage_use_azuread = true
 }
 
 provider "random" {}
