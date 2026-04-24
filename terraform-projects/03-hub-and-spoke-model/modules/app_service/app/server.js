@@ -11,18 +11,19 @@ if (process.env.APPLICATIONINSIGHTS_CONNECTION_STRING) {
     .setAutoCollectDependencies(true)
     .setAutoCollectExceptions(true)
     .setAutoCollectPerformance(true)
+    .setAutoCollectConsole(true, true)
     .start();
 
   client = appInsights.defaultClient;
-  console.log("App Insights initialized");
+  console.log("✅ App Insights initialized");
 } else {
-  console.warn("App Insights NOT configured");
+  console.warn("⚠️ App Insights NOT configured");
 }
 
-// 🔴 Safe wrapper (never crash app)
+// 🔴 Safe wrapper
 function trackExceptionSafe(err) {
   try {
-    if (client && typeof client.trackException === "function") {
+    if (client) {
       client.trackException({ exception: err });
     }
   } catch (e) {
@@ -47,12 +48,40 @@ const BUILD_TIME = process.env.BUILD_TIME || new Date().toISOString();
 
 console.log("App starting...");
 console.log(`App version: ${APP_VERSION}, build: ${BUILD_TIME}`);
+console.log("AI Connection:", process.env.APPLICATIONINSIGHTS_CONNECTION_STRING);
 
 // 🔴 Validate config
 if (!API_BASE_URL) {
   console.error("API_BASE_URL not set");
   process.exit(1);
 }
+
+// ==========================
+// ✅ TEST ENDPOINT (VERY IMPORTANT)
+// ==========================
+app.get("/test-ai", (req, res) => {
+  console.log("🔥 /test-ai endpoint hit");
+
+  if (client) {
+    client.trackEvent({ name: "test-event" });
+
+    client.trackTrace({
+      message: "Test trace from App Service",
+      severity: 1
+    });
+
+    client.trackMetric({
+      name: "test-metric",
+      value: 42
+    });
+
+    console.log("✅ Telemetry sent to App Insights");
+  } else {
+    console.log("❌ AI client not initialized");
+  }
+
+  res.send("AI test triggered");
+});
 
 // ==========================
 // ✅ Health endpoint
@@ -85,7 +114,6 @@ app.post("/api/upload", upload.single("file"), async (req, res) => {
   try {
     const { name, email, age } = req.body;
 
-    // 🔴 validation
     if (!name || !email || !age) {
       return res.status(400).json({ error: "missing fields" });
     }
@@ -96,9 +124,9 @@ app.post("/api/upload", upload.single("file"), async (req, res) => {
 
     console.log("Received file:", req.file.originalname);
 
-    // =========================
-    // ✅ Step 1: Create user
-    // =========================
+    const start = Date.now();
+
+    // Step 1
     const userRes = await axios.post(
       `${API_BASE_URL}/user`,
       {
@@ -106,18 +134,13 @@ app.post("/api/upload", upload.single("file"), async (req, res) => {
         email,
         age: parseInt(age)
       },
-      {
-        timeout: 15000
-      }
+      { timeout: 15000 }
     );
 
     const user = userRes.data;
 
-    // =========================
-    // ✅ Step 2: Upload file
-    // =========================
+    // Step 2
     const formData = new FormData();
-
     formData.append("name", name);
     formData.append("email", email);
     formData.append("age", age);
@@ -138,6 +161,18 @@ app.post("/api/upload", upload.single("file"), async (req, res) => {
       }
     );
 
+    // 🔥 Track dependency manually (important)
+    if (client) {
+      client.trackDependency({
+        target: API_BASE_URL,
+        name: "upload-flow",
+        data: "upload-api",
+        duration: Date.now() - start,
+        success: true,
+        dependencyTypeName: "HTTP"
+      });
+    }
+
     res.json({
       message: "Success",
       userId: user.id
@@ -146,17 +181,12 @@ app.post("/api/upload", upload.single("file"), async (req, res) => {
   } catch (err) {
     console.error("Upload flow failed:", err.message);
 
-    // 🔴 Safe tracking (won’t crash app)
     trackExceptionSafe(err);
 
-    // 🔴 Timeout handling
     if (err.code === "ECONNABORTED") {
-      return res.status(504).json({
-        error: "Request timed out"
-      });
+      return res.status(504).json({ error: "Request timed out" });
     }
 
-    // 🔴 Upstream error
     if (err.response) {
       return res.status(500).json({
         error: "Upstream service failed",
@@ -164,7 +194,6 @@ app.post("/api/upload", upload.single("file"), async (req, res) => {
       });
     }
 
-    // 🔴 Generic error
     res.status(500).json({
       error: "Internal error",
       details: err.message

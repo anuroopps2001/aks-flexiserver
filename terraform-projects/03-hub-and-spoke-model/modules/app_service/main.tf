@@ -15,7 +15,7 @@ locals {
     "appinsights" = {
       priority    = 120
       port        = ["443"]
-      destination = "AppInsightsAndDiagnostics" 
+      destination = "AzureMonitor" 
     }
   }
 }
@@ -62,7 +62,7 @@ resource "azurerm_linux_web_app" "frontend_app" {
     ENVIRONMENT                                  = "production",
     APP_VERSION                                  = "v1",
     BUILD_TIME                                   = var.build_time,
-    "APPLICATION_INSIGHTS_CONNECTION_STRING"     = azurerm_application_insights.appinsights.connection_string,
+    "APPLICATIONINSIGHTS_CONNECTION_STRING"     = azurerm_application_insights.appinsights.connection_string,
     "ApplicationInsightsAgent_EXTENSION_VERSION" = "~3",
     "XDT_MicrosoftApplicationInsights_Mode"      = "Recommended"
     XDT_MicrosoftApplicationInsights_NodeJS      = "1"
@@ -119,7 +119,7 @@ resource "azurerm_linux_web_app_slot" "staging" {
     ENVIRONMENT                                  = "staging",
     APP_VERSION                                  = "v2",
     BUILD_TIME                                   = var.build_time,
-    "APPLICATION_INSIGHTS_CONNECTION_STRING"     = azurerm_application_insights.appinsights.connection_string,
+    "APPLICATIONINSIGHTS_CONNECTION_STRING"     = azurerm_application_insights.appinsights.connection_string,
     "ApplicationInsightsAgent_EXTENSION_VERSION" = "~3",
     "XDT_MicrosoftApplicationInsights_Mode"      = "Recommended"
   })
