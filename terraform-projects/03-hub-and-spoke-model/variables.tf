@@ -55,3 +55,10 @@ variable "kv_secrets" {
   type    = map(string)
   default = {}
 }
+
+
+variable "ssh_public_key" {
+  type = string
+  description = "The actual string content of the public key, not the path"
+  sensitive = true
+}

@@ -4,3 +4,4 @@ terraform.tfstate*
 *ssl-certs
 rootCA.crt
 *.pfx
+public-ssh-key.tfvars
