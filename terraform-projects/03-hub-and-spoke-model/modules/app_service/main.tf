@@ -11,6 +11,12 @@ locals {
       port        = ["443"]
       destination = "10.2.15"
     }
+
+    "appinsights" = {
+      priority    = 120
+      port        = ["443"]
+      destination = "AppInsightsAndDiagnostics" 
+    }
   }
 }
 
@@ -147,7 +153,7 @@ resource "azurerm_network_security_group" "app_service_nsg" {
 
 resource "azurerm_network_security_rule" "allow_aks_outbound" {
   for_each                    = local.outbound_rules
-  name                        = "Allo-${each.key}-Outbound"
+  name                        = "Allow-${each.key}-Outbound"
   priority                    = each.value.priority
   direction                   = "Outbound"
   access                      = "Allow"
