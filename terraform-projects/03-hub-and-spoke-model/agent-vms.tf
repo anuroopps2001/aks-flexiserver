@@ -43,7 +43,10 @@ resource "azurerm_linux_virtual_machine" "agent_vm" {
   # Attach the Managed Identity above created
   identity {
     type         = "UserAssigned"
-    identity_ids = [azurerm_user_assigned_identity.agent_identity.id]
+    identity_ids = [
+      azurerm_user_assigned_identity.agent_identity.id,
+      "/subscriptions/5f47c6fe-549b-45c6-ae21-792c56637b80/resourceGroups/rg-terraform-state/providers/Microsoft.ManagedIdentity/userAssignedIdentities/terraform-managed-identity"
+    ]
   }
 
   network_interface_ids = [azurerm_network_interface.agent_nic.id]
