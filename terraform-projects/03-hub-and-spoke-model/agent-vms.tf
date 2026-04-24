@@ -2,11 +2,11 @@
 # # UserassignedIdentities will stay intact, even if the resources using these identities gets deleted and also,
 # # we can attach the sigle userAssignedIdentity to multiple azure resources
 
-# resource "azurerm_user_assigned_identity" "agent_identity" {
-#   name                = "id-circleci-agent"
-#   location            = var.location
-#   resource_group_name = azurerm_resource_group.rgs["rg-spoke-workloads"].name
-# }
+resource "azurerm_user_assigned_identity" "agent_identity" {
+  name                = "id-circleci-agent"
+  location            = var.location
+  resource_group_name = azurerm_resource_group.rgs["rg-spoke-workloads"].name
+}
 
 
 # # Public Ip for the VNet VM, just to avoid the cost of the bastion
