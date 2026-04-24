@@ -142,26 +142,26 @@ resource "azurerm_role_assignment" "aks_network_contributor" {
 
 
 resource "azurerm_network_security_group" "aks_custom_nsg" {
-  name = "nsg-aks-custom-control"
-  location = var.location
+  name                = "nsg-aks-custom-control"
+  location            = var.location
   resource_group_name = azurerm_resource_group.rgs["rg-spoke-workloads"].name
 }
 
 resource "azurerm_network_security_rule" "deny_envoy_access" {
-  name = "Deny-envoy-traffic"
-  priority = 100
-  direction = "Inbound"
-  access = "Allow"
-  protocol = "Tcp"
-  source_port_range = "*"
-  destination_port_ranges = [ "80", "443" ]
-  source_address_prefix = "10.0.3.0/24"
-  destination_address_prefix = "10.1.1.6"
-  resource_group_name = azurerm_resource_group.rgs["rg-spoke-workloads"].name
+  name                        = "Deny-envoy-traffic"
+  priority                    = 100
+  direction                   = "Inbound"
+  access                      = "Allow"
+  protocol                    = "Tcp"
+  source_port_range           = "*"
+  destination_port_ranges     = ["80", "443"]
+  source_address_prefix       = "10.0.3.0/24"
+  destination_address_prefix  = "10.1.1.6"
+  resource_group_name         = azurerm_resource_group.rgs["rg-spoke-workloads"].name
   network_security_group_name = azurerm_network_security_group.aks_custom_nsg.name
 }
 
 resource "azurerm_subnet_network_security_group_association" "aks_custom_nsg_assoc" {
-  subnet_id = azurerm_subnet.spoke_subnets["snet-aks"].id
+  subnet_id                 = azurerm_subnet.spoke_subnets["snet-aks"].id
   network_security_group_id = azurerm_network_security_group.aks_custom_nsg.id
 }

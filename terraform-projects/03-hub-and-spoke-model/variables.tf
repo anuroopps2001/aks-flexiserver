@@ -58,7 +58,7 @@ variable "kv_secrets" {
 
 
 variable "ssh_public_key" {
-  type = string
+  type        = string
   description = "The actual string content of the public key, not the path"
-  sensitive = true
+  sensitive   = true
 }

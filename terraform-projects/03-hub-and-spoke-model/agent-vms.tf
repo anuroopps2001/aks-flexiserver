@@ -42,7 +42,7 @@ resource "azurerm_linux_virtual_machine" "agent_vm" {
 
   # Attach the Managed Identity above created
   identity {
-    type         = "UserAssigned"
+    type = "UserAssigned"
     identity_ids = [
       azurerm_user_assigned_identity.agent_identity.id,
       "/subscriptions/5f47c6fe-549b-45c6-ae21-792c56637b80/resourceGroups/rg-terraform-state/providers/Microsoft.ManagedIdentity/userAssignedIdentities/terraform-managed-identity"
@@ -70,9 +70,9 @@ resource "azurerm_linux_virtual_machine" "agent_vm" {
   depends_on = [azurerm_user_assigned_identity.agent_identity]
 
   lifecycle {
-    ignore_changes = [ 
-      admin_ssh_key  # This stops Terraform from trying to update or verify the key
-     ]
+    ignore_changes = [
+      admin_ssh_key # This stops Terraform from trying to update or verify the key
+    ]
   }
 }
 

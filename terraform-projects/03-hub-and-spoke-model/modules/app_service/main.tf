@@ -1,3 +1,20 @@
+locals {
+  outbound_rules = {
+    "aks" = {
+      priority    = 100
+      port        = ["80", "443"]
+      destination = "10.1.1.6"
+    }
+
+    "kv" = {
+      priority    = 110
+      port        = ["443"]
+      destination = "10.2.15"
+    }
+  }
+}
+
+
 data "archive_file" "frontend_zip" {
   type       = "zip"
   source_dir = "${path.module}/app"
@@ -22,7 +39,7 @@ resource "azurerm_linux_web_app" "frontend_app" {
   ## Manually slot the code into prod appservice, once tested in staging deployment slot 
   # zip_deploy_file = data.archive_file.frontend_zip.output_path
 
-  virtual_network_subnet_id = var.app_service_subnet_id 
+  virtual_network_subnet_id = var.app_service_subnet_id
 
   site_config {
     application_stack {
@@ -36,13 +53,13 @@ resource "azurerm_linux_web_app" "frontend_app" {
 
 
   app_settings = merge(var.common_app_settings, {
-    ENVIRONMENT                                = "production",
-    APP_VERSION                                = "v1",
-    BUILD_TIME                                 = var.build_time,
-    "APPLICATION_INSIGHTS_CONNECTION_STRING" = azurerm_application_insights.appinsights.connection_string,
+    ENVIRONMENT                                  = "production",
+    APP_VERSION                                  = "v1",
+    BUILD_TIME                                   = var.build_time,
+    "APPLICATION_INSIGHTS_CONNECTION_STRING"     = azurerm_application_insights.appinsights.connection_string,
     "ApplicationInsightsAgent_EXTENSION_VERSION" = "~3",
     "XDT_MicrosoftApplicationInsights_Mode"      = "Recommended"
-    XDT_MicrosoftApplicationInsights_NodeJS    = "1"
+    XDT_MicrosoftApplicationInsights_NodeJS      = "1"
   })
 
   # Standard Settings (The "Suitcase"): These settings are packed inside the code. When the code moves from Staging to 
@@ -76,10 +93,10 @@ resource "azurerm_linux_web_app" "frontend_app" {
 }
 
 resource "azurerm_linux_web_app_slot" "staging" {
-  count           = var.enable_staging_slot ? 1 : 0
-  name            = "staging"
-  zip_deploy_file = data.archive_file.frontend_zip.output_path
-  app_service_id  = azurerm_linux_web_app.frontend_app.id
+  count                     = var.enable_staging_slot ? 1 : 0
+  name                      = "staging"
+  zip_deploy_file           = data.archive_file.frontend_zip.output_path
+  app_service_id            = azurerm_linux_web_app.frontend_app.id
   virtual_network_subnet_id = var.app_service_subnet_id
 
   site_config {
@@ -93,10 +110,10 @@ resource "azurerm_linux_web_app_slot" "staging" {
   }
 
   app_settings = merge(var.common_app_settings, {
-    ENVIRONMENT = "staging",
-    APP_VERSION = "v2",
-    BUILD_TIME  = var.build_time,
-    "APPLICATION_INSIGHTS_CONNECTION_STRING" = azurerm_application_insights.appinsights.connection_string,
+    ENVIRONMENT                                  = "staging",
+    APP_VERSION                                  = "v2",
+    BUILD_TIME                                   = var.build_time,
+    "APPLICATION_INSIGHTS_CONNECTION_STRING"     = azurerm_application_insights.appinsights.connection_string,
     "ApplicationInsightsAgent_EXTENSION_VERSION" = "~3",
     "XDT_MicrosoftApplicationInsights_Mode"      = "Recommended"
   })
@@ -123,40 +140,42 @@ resource "azurerm_application_insights" "appinsights" {
 
 
 resource "azurerm_network_security_group" "app_service_nsg" {
-  name = "nsg-app-service-integration"
-  location = var.location
+  name                = "nsg-app-service-integration"
+  location            = var.location
   resource_group_name = var.resource_group_name
 }
 
 resource "azurerm_network_security_rule" "allow_aks_outbound" {
-  name = "Allow-Outbound"
-  priority = 100
-  direction = "Outbound"
-  access = "Allow"
-  protocol = "Tcp"
-  source_port_range = "*"
-  destination_port_range = "80"
-  source_address_prefix = "*"
-  destination_address_prefix = "10.1.1.6"
-  resource_group_name = var.resource_group_name
+  for_each                    = local.outbound_rules
+  name                        = "Allo-${each.key}-Outbound"
+  priority                    = each.value.priority
+  direction                   = "Outbound"
+  access                      = "Allow"
+  protocol                    = "Tcp"
+  source_port_range           = "*"
+  destination_port_ranges     = [each.value.port]
+  source_address_prefix       = "*"
+  destination_address_prefix  = each.value.destination
+  resource_group_name         = var.resource_group_name
   network_security_group_name = azurerm_network_security_group.app_service_nsg.name
 }
 
-resource "azurerm_network_security_rule" "allow_kv_outbound" {
-  name = "Allow-KeyVault-Outbound"
-  priority = 110
-  direction = "Outbound"
-  access = "Allow"
-  protocol = "Tcp"
-  source_port_range = "*"
-  destination_port_range = "443"
-  source_address_prefix = "*"
-  destination_address_prefix = "10.2.1.5"
-  resource_group_name = var.resource_group_name
+
+# Deny Internet outbound access
+resource "azurerm_network_security_rule" "deny_internet" {
+  name                        = "Deny-Internet-Outbound"
+  priority                    = 1000
+  direction                   = "Outbound"
+  access                      = "Deny"
+  protocol                    = "Tcp"
+  source_port_range           = "*"
+  destination_port_range      = "*"
+  source_address_prefix       = "*"
+  destination_address_prefix  = "Internet"
+  resource_group_name         = var.resource_group_name
   network_security_group_name = azurerm_network_security_group.app_service_nsg.name
 }
-
 resource "azurerm_subnet_network_security_group_association" "app_assoc" {
-  subnet_id = var.app_service_subnet_id
+  subnet_id                 = var.app_service_subnet_id
   network_security_group_id = azurerm_network_security_group.app_service_nsg.id
 }
