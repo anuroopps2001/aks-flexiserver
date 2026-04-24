@@ -155,7 +155,7 @@ resource "azurerm_network_security_rule" "deny_envoy_access" {
   protocol = "Tcp"
   source_port_range = "*"
   destination_port_ranges = [ "80", "443" ]
-  source_address_prefix = "*"
+  source_address_prefix = "10.0.3.0/24"
   destination_address_prefix = "10.1.1.6"
   resource_group_name = azurerm_resource_group.rgs["rg-spoke-workloads"].name
   network_security_group_name = azurerm_network_security_group.aks_custom_nsg.name
