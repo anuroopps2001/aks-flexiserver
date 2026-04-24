@@ -120,3 +120,43 @@ resource "azurerm_application_insights" "appinsights" {
   resource_group_name = var.resource_group_name
   application_type    = "web"
 }
+
+
+resource "azurerm_network_security_group" "app_service_nsg" {
+  name = "nsg-app-service-integration"
+  location = var.location
+  resource_group_name = var.resource_group_name
+}
+
+resource "azurerm_network_security_rule" "allow_aks_outbound" {
+  name = "Allow-Outbound"
+  priority = 100
+  direction = "Outbound"
+  access = "Allow"
+  protocol = "Tcp"
+  source_port_range = "*"
+  destination_port_range = "80"
+  source_address_prefix = "*"
+  destination_address_prefix = "10.1.1.6"
+  resource_group_name = var.resource_group_name
+  network_security_group_name = azurerm_network_security_group.app_service_nsg.name
+}
+
+resource "azurerm_network_security_rule" "allow_kv_outbound" {
+  name = "Allow-KeyVault-Outbound"
+  priority = 110
+  direction = "Outbound"
+  access = "Allow"
+  protocol = "Tcp"
+  source_port_range = "*"
+  destination_port_range = "443"
+  source_address_prefix = "*"
+  destination_address_prefix = "10.2.1.5"
+  resource_group_name = var.resource_group_name
+  network_security_group_name = azurerm_network_security_group.app_service_nsg.name
+}
+
+resource "azurerm_subnet_network_security_group_association" "app_assoc" {
+  subnet_id = var.app_service_subnet_id
+  network_security_group_id = azurerm_network_security_group.app_service_nsg.id
+}

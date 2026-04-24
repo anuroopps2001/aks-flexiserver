@@ -151,7 +151,7 @@ resource "azurerm_network_security_rule" "deny_envoy_access" {
   name = "Deny-envoy-traffic"
   priority = 100
   direction = "Inbound"
-  access = "Deny"
+  access = "Allow"
   protocol = "Tcp"
   source_port_range = "*"
   destination_port_ranges = [ "80", "443" ]
