@@ -153,7 +153,7 @@ resource "azurerm_network_security_rule" "allow_aks_outbound" {
   access                      = "Allow"
   protocol                    = "Tcp"
   source_port_range           = "*"
-  destination_port_ranges     = [each.value.port]
+  destination_port_ranges     = each.value.port
   source_address_prefix       = "*"
   destination_address_prefix  = each.value.destination
   resource_group_name         = var.resource_group_name
@@ -175,6 +175,23 @@ resource "azurerm_network_security_rule" "deny_internet" {
   resource_group_name         = var.resource_group_name
   network_security_group_name = azurerm_network_security_group.app_service_nsg.name
 }
+
+resource "azurerm_network_security_rule" "allow_inbound_health" {
+  name                        = "Allow-Azure-Probes"
+  priority                    = 100
+  direction                   = "Inbound"
+  access                      = "Allow"
+  protocol                    = "Tcp"
+  source_port_range           = "*"
+  destination_port_range      = "3000" # Your Node.js PORT
+  source_address_prefix       = "AppServiceManagement"
+  destination_address_prefix  = "*"
+  resource_group_name         = var.resource_group_name
+  network_security_group_name = azurerm_network_security_group.app_service_nsg.name
+}
+
+
+
 resource "azurerm_subnet_network_security_group_association" "app_assoc" {
   subnet_id                 = var.app_service_subnet_id
   network_security_group_id = azurerm_network_security_group.app_service_nsg.id
