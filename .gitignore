@@ -5,3 +5,4 @@ terraform.tfstate*
 rootCA.crt
 *.pfx
 public-ssh-key.tfvars
+*frontend.zip
