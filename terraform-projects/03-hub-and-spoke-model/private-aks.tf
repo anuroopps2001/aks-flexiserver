@@ -146,11 +146,12 @@ resource "azurerm_role_assignment" "aks_network_contributor" {
 # Custom policies for Enforce CPU and Memory Limits
 resource "azurerm_resource_policy_assignment" "enforce_cpu_limits" {
   name = "aks-enforce-limits"
-  resource_id = azurerm_resource_group.rgs["rg-spoke-workloads"].id
 
   # Built-in ID for "Kubernetes cluster containers should have CPU and memory limits"
   policy_definition_id = "/providers/Microsoft.Authorization/policyDefinitions/03a4ecdb-0684-4039-be91-2762979e1bc8"
   description = "Ensures all containers have CPU/Memory requests and limits to prevent node exhaustion."
+  resource_id = azurerm_kubernetes_cluster.private_aks.id
+  display_name = "CPU Enforment Policy"  
 
   parameters = jsonencode({
     effect = {

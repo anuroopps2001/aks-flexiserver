@@ -66,19 +66,12 @@ resource "azurerm_monitor_diagnostic_setting" "storage_logs" {
 
 
   enabled_log {
-    category = "StorageRead"
+    category = "StorageApiResult" 
   }
 
-  enabled_log {
-    category = "StorageWrite"
-  }
-
-  enabled_log {
-    category = "StorageDelete"
-  }
-
-  enabled_metric {
-    category = "AllMetrics"
+  metric {
+    category = "Transaction"
+    enabled = true
   }
 }
 
