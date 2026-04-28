@@ -13,6 +13,14 @@ resource "azurerm_storage_account" "storage" {
   account_replication_type = "LRS"
 
   public_network_access_enabled = false
+
+  blob_properties {
+    delete_retention_policy {
+      days = 7  # Restore deleted blobs (within 7 days) and Protection against accidental overwrite
+    }
+
+    versioning_enabled = true
+  }
 }
 
 resource "azurerm_storage_container" "images" {
@@ -21,6 +29,58 @@ resource "azurerm_storage_container" "images" {
   container_access_type = "private"
 }
 
+
+# Life cycle management of containers within the storage accounts
+resource "azurerm_storage_management_policy" "lifecycle" {
+  storage_account_id = azurerm_storage_account.storage.id
+
+  rule {
+    name = "move-old-data"
+    enabled = true
+
+    filters {
+      blob_types = [ "blockBlob" ]
+      prefix_match = [ "go-app-uploads" ]
+    }
+
+    actions {
+      base_blob {
+        tier_to_cool_after_days_since_modification_greater_than = 30  # 30 days → move to Cool
+        delete_after_days_since_modification_greater_than = 90   # 90 days → delete
+      }
+    }
+  }
+}
+
+resource "azurerm_log_analytics_workspace" "storage_law" {
+  name = "storage-law"
+  location = var.location
+  resource_group_name = azurerm_resource_group.rgs["rg-hub-networking"].name
+  sku = "PerGB2018"
+  retention_in_days = 30
+}
+resource "azurerm_monitor_diagnostic_setting" "storage_logs" {
+  name = "storage-diagnostics"
+  target_resource_id = azurerm_storage_account.storage.id
+  log_analytics_workspace_id = azurerm_log_analytics_workspace.storage_law.id
+
+
+  enabled_log {
+    category = "StorageRead"
+  }
+
+  enabled_log {
+    category = "StorageWrite"
+  }
+
+  enabled_log {
+    category = "StorageDelete"
+  }
+
+  enabled_metric {
+    category = "AllMetrics"
+  }
+}
 
 resource "azurerm_private_endpoint" "storage_pe" {
   name                = "pe-hub-storage-account"
