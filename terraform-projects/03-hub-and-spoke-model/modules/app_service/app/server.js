@@ -179,26 +179,34 @@ app.post("/api/upload", upload.single("file"), async (req, res) => {
     });
 
   } catch (err) {
-    console.error("Upload flow failed:", err.message);
+  console.error("Upload flow failed:", {
+    message: err.message,
+    status: err.response?.status,
+    data: err.response?.data
+  });
 
-    trackExceptionSafe(err);
+  trackExceptionSafe(err);
 
-    if (err.code === "ECONNABORTED") {
-      return res.status(504).json({ error: "Request timed out" });
-    }
+  // Timeout
+  if (err.code === "ECONNABORTED") {
+    return res.status(504).json({ error: "Request timed out" });
+  }
 
-    if (err.response) {
-      return res.status(500).json({
-        error: "Upstream service failed",
-        details: err.response.data
-      });
-    }
+  // Upstream error (AKS / Storage / API)
+  if (err.response) {
+    const status = err.response.status;
 
-    res.status(500).json({
-      error: "Internal error",
-      details: err.message
+    return res.status(status).json({
+      error: "Upstream service failed",
+      upstreamStatus: status
     });
   }
+
+  // Fallback
+  return res.status(500).json({
+    error: "Internal error"
+  });
+}
 });
 
 // ==========================
