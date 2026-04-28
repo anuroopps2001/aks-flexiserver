@@ -6,3 +6,4 @@ rootCA.crt
 *.pfx
 public-ssh-key.tfvars
 *frontend.zip
+*node_modules
