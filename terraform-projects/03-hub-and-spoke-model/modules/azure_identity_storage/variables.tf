@@ -1,6 +1,6 @@
-variable "name"{
-    description = "The prefix name for the identity (e.g., 'loki')"
-    type = string
+variable "name" {
+  description = "The prefix name for the identity (e.g., 'loki')"
+  type        = string
 }
 
 variable "container_name" {

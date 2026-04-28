@@ -1,4 +1,4 @@
-variable "storage_connection_string" {type = string}
+variable "storage_connection_string" { type = string }
 
 variable "start_time" {
   type = string

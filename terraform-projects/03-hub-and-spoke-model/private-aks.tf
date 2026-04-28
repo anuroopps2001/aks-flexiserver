@@ -49,8 +49,8 @@ resource "azurerm_kubernetes_cluster" "private_aks" {
   oidc_issuer_enabled       = true
   workload_identity_enabled = true
 
-  azure_policy_enabled = true  # This ensure, Gatekeeper addon will be deployed on aks and policies will be tested against this
-  
+  azure_policy_enabled = true # This ensure, Gatekeeper addon will be deployed on aks and policies will be tested against this
+
   default_node_pool {
     name           = "systempool"
     vm_size        = "Standard_B2as_v2"
@@ -144,22 +144,34 @@ resource "azurerm_role_assignment" "aks_network_contributor" {
 
 
 # Custom policies for Enforce CPU and Memory Limits
-resource "azurerm_resource_policy_assignment" "enforce_cpu_limits" {
-  name = "aks-enforce-limits"
-
-  # Built-in ID for "Kubernetes cluster containers should have CPU and memory limits"
-  policy_definition_id = "/providers/Microsoft.Authorization/policyDefinitions/03a4ecdb-0684-4039-be91-2762979e1bc8"
-  description = "Ensures all containers have CPU/Memory requests and limits to prevent node exhaustion."
-  resource_id = azurerm_kubernetes_cluster.private_aks.id
-  display_name = "CPU Enforment Policy"  
+resource "azurerm_resource_group_policy_assignment" "aks_baseline" {
+  name              = "aks-baseline-security"
+  resource_group_id = azurerm_resource_group.rgs["rg-spoke-workloads"].id
+  # This is the ID for the "Baseline standards for Linux-based workloads" INITIATIVE
+  policy_definition_id = "/providers/Microsoft.Authorization/policySetDefinitions/a8640138-9b0a-447c-8e40-16bc0d4668dd"
 
   parameters = jsonencode({
+    # 1. Fixing your Host Paths parameter inside the Initiative
+    allowedHostPaths = {
+      value = {
+        paths = [
+          "/var/log",
+          "/var/run/azure",
+          "/var/lib/kubelet"
+        ]
+      }
+    }
+
+    # 2. You can set other parameters in the bundle here
     effect = {
-      value = "Audit"  # This won't break your deployments, but it will list every "non-compliant" pod in the Azure Portal
-      # For Hard Setting, we can apply value = "deny"
+      value = "deny"
+    }
+
+    # Optional: If you want to exclude certain namespaces from the bundle
+    excludedNamespaces = {
+      value = ["kube-system", "gatekeeper-system", "azure-arc"]
     }
   })
-  
 }
 
 resource "azurerm_network_security_group" "aks_custom_nsg" {

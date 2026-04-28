@@ -7,7 +7,7 @@ resource "random_string" "tfstate" {
   length  = 10
   special = false
   lower   = true
-  upper = false
+  upper   = false
 }
 resource "azurerm_storage_account" "tfstate" {
   name                     = "sttfstate${random_string.tfstate.result}"
